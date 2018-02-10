@@ -10,6 +10,7 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffXfermode;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -230,6 +231,57 @@ public class PaintView extends View{
         mPreviousPaintColor = mCurrentPaintColor;
     }
 
+
+
+
+    public void setColor(String newColor){
+        // invalidate the view
+        invalidate();
+        mCurrentPaintColor = Color.parseColor(newColor);
+        mPaint.setColor(mCurrentPaintColor);
+        mPreviousPaintColor = mCurrentPaintColor;
+    }
+
+
+
+
+
+
+    public void setCurrentBrushSize(float newSize){
+
+        float pixelAmount = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, newSize, getResources().getDisplayMetrics());
+
+        mCurrentBrushSize = pixelAmount;
+
+        mPaint.setStrokeWidth(mCurrentBrushSize);
+    }
+
+
+
+
+
+    public void setPreviousBrushSize(float lastSize){
+
+        mPreviousBrushSize = lastSize;
+    }
+
+
+
+
+
+    public float getPreviousBrushSize(){
+
+        return mPreviousBrushSize;
+    }
+
+
+
+
+
+
+
+
+    //
 
 
 }
