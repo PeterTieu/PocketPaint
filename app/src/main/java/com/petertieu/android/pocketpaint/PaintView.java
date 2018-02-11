@@ -22,6 +22,7 @@ import android.view.View;
 //The View for which the paint actions take place
     //Keywords:
         //bitmap: Holds the Pixels. It si the base of the PaintView, for which paint will be superimposed on top.
+        //path: Describes the outline of a stroke
         //canvas: Holds the draw calls. Writes into the Bitmap
         //paint: The actual paint that will be made on the Bitmap. Holds properties such as colors and styles for the drawing
 
@@ -109,13 +110,13 @@ public class PaintView extends View{
 
 
     //Override the View method, onSizeChanged(..) - called when the size of the view has changed.
-    //For the app, this is called at the very beginning when the app starts
+    //For the app, this is called at the very beginning when the app starts - when PaintView begins
     @Override
     protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight){
         super.onSizeChanged(width, height, oldWidth, oldHeight);
 
         //Log method call event to Logcat
-        Log.i(TAG, "onSizeChanged(..) caleld");
+        Log.i(TAG, "onSizeChanged(..) called");
 
         //Create MUTABLE Bitmap object, with specified width and height - to be the same as that of the width and height of the PaintView's view
         mBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
@@ -173,13 +174,13 @@ public class PaintView extends View{
             case MotionEvent.ACTION_UP:
                 //If the eraser-mode is activated
                 if (mEraserEnabled){
-                    //Set the transfer mode to "CLEAR" (from the PorterDuff.Mode class), so that the SOURCE PIXEL (white pixel from the eraser)
+                    //(Safe call) Set the transfer mode to "CLEAR" (from the PorterDuff.Mode class), so that the SOURCE PIXEL (white pixel from the eraser)
                     // would "eliminate" the destination pixel (pixel that the eraser superimposes on top of)
                     mPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR));
                 }
 
                 //Clear any existing transfer modes (i.e. from eraser)
-                //Without this line,
+                //Without this line, IF the eraser had been enabled, then there would be a black line across the page if it is swiped
                 mPaint.setXfermode(null);
 
 
@@ -214,7 +215,7 @@ public class PaintView extends View{
 
 
 
-    //(Setter) Set the current color of the paint (i.e. brush color)
+    //(Setter) Set the CURRENT color of the paint (i.e. brush color)
     public void setCurrentPaintColor(String color){
 
         //(Safe call) Invalidate the entire PaintView in case it just did not happen to be invalidated previously
@@ -234,25 +235,20 @@ public class PaintView extends View{
 
 
 
-    public void setColor(String newColor){
-        // invalidate the view
-        invalidate();
-        mCurrentPaintColor = Color.parseColor(newColor);
-        mPaint.setColor(mCurrentPaintColor);
-        mPreviousPaintColor = mCurrentPaintColor;
-    }
 
+    //(Setter) Set the CURRENT size of the brush
+    public void setCurrentBrushSize(float currentBrushSize){
 
+        //Convert unpacked complex data value holding a dimension to its final floating point value
+            //Arg #1 (int): Unit to convert from
+            //Arg #2 (float): Value ot apply the unit to
+            //Arg #3 (metrics): Currernt display metrics to use in the conversion - supplies display density and scaling information
+        float pixelAmount = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, currentBrushSize, getResources().getDisplayMetrics());
 
-
-
-
-    public void setCurrentBrushSize(float newSize){
-
-        float pixelAmount = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, newSize, getResources().getDisplayMetrics());
-
+        //Assign the current brush size to the pixel amount
         mCurrentBrushSize = pixelAmount;
 
+        //Set the width of the paint for stroking to the current set brush size
         mPaint.setStrokeWidth(mCurrentBrushSize);
     }
 
@@ -260,17 +256,16 @@ public class PaintView extends View{
 
 
 
-    public void setPreviousBrushSize(float lastSize){
-
-        mPreviousBrushSize = lastSize;
+    //(Setter) Set the PREVIOUS size of the brush
+    public void setPreviousBrushSize(float previousBrushSize){
+        mPreviousBrushSize = previousBrushSize;
     }
 
 
 
 
-
+    //(Getter) Get the PREVIOUS size of the brush
     public float getPreviousBrushSize(){
-
         return mPreviousBrushSize;
     }
 
@@ -278,10 +273,40 @@ public class PaintView extends View{
 
 
 
+    //(Setter) Enable/Disable the eraser
+    public void setEraser(boolean isEraserEnabled){
+
+        //Enable/Disable eraser from the parameter
+        mEraserEnabled = isEraserEnabled;
+
+        //If eraser is ENABLED
+        if (mEraserEnabled) {
+            //Set the color of the paint to the background color
+            mPaint.setColor(Color.WHITE);
+        }
+        //If eraser is DISABLED
+        else{
+            //Set the color of the paint to the previous color (i.e. away from White)
+            mPaint.setColor(mPreviousPaintColor);
+
+            //(Safe call) Clear any existing transfer modes (i.e. from eraser)
+            mPaint.setXfermode(null);
+        }
+    }
 
 
 
-    //
+
+
+    //Start a new paint by 'wiping' out the entire mutable Bitmap (mBitmap) and turning the color white
+    public void startNewPainting(){
+
+        //Fill the entire mutable bitmap (mBitmap) of the canvas (mCanvas) with the specified color and porter-duff xfermode
+        mCanvas.drawColor(0, PorterDuff.Mode.CLEAR);
+
+        //Invalidate the entire PaintView so that the bitmap (mBitmap) is recreated
+        invalidate();
+    }
 
 
 }
