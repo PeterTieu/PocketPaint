@@ -1,6 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!--Default Colors-->
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+
+    <!--Eraser Color-->
+    <color name="eraser">#ffffff</color>
+
+    <!--Preset Paint Colors-->
+    <color name="red">#FF0000</color>
+    <color name="orange">#F39C12</color>
+    <color name="yellow">#FFFF00</color>
+    <color name="green">#008000</color>
+    <color name="blue">#0000FF</color>
+    <color name="indigo">#4b0082</color>
+    <color name="violet">#ee82ee</color>
+    <color name="skin">#ffcc99</color>
+    <color name="black">#000000</color>
+
+
+
 </resources>
