@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--Drawable for a single PAINT COLOR IMAGEVIEW (box)-->
+<!--In the UNPRESSED state-->
+<layer-list
+    xmlns:android="http://schemas.android.com/apk/res/android" >
+
+
+    <!--Outer Box (1st layer)-->
+    <item>
+
+        <!--Rectangular (actually, square) shape with height the same as the bottom pallet-->
+        <shape
+            android:shape="rectangle">
+
+            <!--Stroke properties-->
+            <stroke
+                android:width="4dp"
+                android:color="@color/light_gray"/>
+
+            <!--Transparent background - to accomodate the Paint Color-->
+            <solid
+                android:color="@color/transparent"/>
+
+        </shape>
+
+    </item>
+
+
+
+    <!--Inter Box (2nd layer) - contains the Brush Color-->
+    <item>
+
+        <shape
+            android:shape="rectangle">
+
+            <!--Stroke properties-->
+            <stroke
+                android:width="4dp"
+                android:color="@color/light_gray"/>
+
+            <!--Transparent background - to accomodate the Paint Color-->
+            <solid
+                android:color="@color/transparent"/>
+
+            <!--Round corners-->
+            <corners
+                android:radius="10dp"/>
+
+        </shape>
+
+    </item>
+
+
+</layer-list>
