@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--Drawable for MEDIUM-LARGE brush size.
+     Called in dialog_brush_size_chooser.xml-->
+<shape
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval"
+    android:dither="true">
+
+    <solid
+        android:color="@color/dark_gray"/>
+
+    <size
+        android:height="@dimen/medium_large_brush_size"
+        android:width="@dimen/medium_large_brush_size"/>
+
+</shape>
