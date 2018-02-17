@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--Dimensions of the Brush (and Eraser) sizes-->
+<resources>
+
+    <dimen name="extra_extra_small_brush_size">2dp</dimen>
+    <dimen name="extra_small_brush_size">5dp</dimen>
+    <dimen name="small_brush_size">10dp</dimen>
+    <dimen name="small_medium_brush_size">15dp</dimen>
+    <dimen name="medium_brush_size">20dp</dimen>
+    <dimen name="medium_large_brush_size">25dp</dimen>
+    <dimen name="large_brush_size">30dp</dimen>
+    <dimen name="extra_large_brush_size">35dp</dimen>
+    <dimen name="extra_extra_large_brush_size">40dp</dimen>
+
+</resources>
