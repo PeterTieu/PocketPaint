@@ -16,40 +16,95 @@
 
     <!--Layout for ACTION OPTIONS (Top Pallet)-->
     <LinearLayout
+        android:id="@+id/top_tools_pallet"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
         <!--"New Painting"-->
         <ImageButton
-            android:id="@+id/buttonNew"
-            android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
+            android:id="@+id/new_painting_image_button"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:contentDescription="@string/new_painting"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
             android:src="@drawable/new_painting"/>
 
         <!--"Brush"-->
         <ImageButton
-            android:id="@+id/buttonBrush"
-            android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
+            android:id="@+id/brush_image_button"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:contentDescription="@string/brush"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
             android:src="@drawable/brush" />
 
         <!--"Eraser"-->
         <ImageButton
-            android:id="@+id/buttonEraser"
-            android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
+            android:id="@+id/eraser_image_button"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:contentDescription="@string/eraser"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
             android:src="@drawable/eraser" />
+
+        <!--"Size Selector"-->
+        <ImageButton
+            android:id="@+id/size_chooser_image_button"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:contentDescription="@string/size_chooser"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:src="@drawable/caliper"/>
+
+
+        <!--Feedback for Size and Color-->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:layout_marginTop="-4dp">
+
+            <!--Size Feedback-->
+            <Button
+                android:id="@+id/size_feedback"
+                android:layout_width="60dp"
+                android:layout_height="20dp"
+                android:layout_marginTop="5dp"
+
+                android:layout_marginLeft="4dp"
+                android:layout_marginRight="4dp"
+                android:layout_weight="1"
+                android:background="@color/light_gray"
+                android:textColor="@color/black"/>
+
+            <!--Color Feedback-->
+            <Button
+                android:id="@+id/color_feedback"
+                android:layout_width="60dp"
+                android:layout_height="30dp"
+                android:layout_marginTop="-4dp"
+                android:layout_marginBottom="4.8dp"
+                android:layout_marginLeft="4dp"
+                android:layout_marginRight="4dp"
+                android:paddingRight="4dp"
+                android:maxLength="20"
+                android:layout_weight="2"/>
+        </LinearLayout>
+
 
         <!--"Save Painting"-->
         <ImageButton
-            android:id="@+id/buttonSavePainting"
-            android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
+            android:id="@+id/save_painting_image_button"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:contentDescription="@string/save_painting"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
             android:src="@drawable/save_painting" />
 
     </LinearLayout>
@@ -57,9 +112,141 @@
 
 
 
-    <!--PaintView custom view-->
-    <com.petertieu.android.pocketpaint
-        android:id="@+id/drawing"
+    <!--Layout for PRESET PAINT COLORS (Bottom Pallet)-->
+    <LinearLayout
+        android:id="@+id/paint_colors_pallet"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="#FFFFFF">
+
+        <!--RED Paint Color-->
+        <ImageButton
+            android:id="@+id/red_paint_button"
+            android:layout_width="@dimen/medium_large_brush_size"
+            android:layout_height="@dimen/medium_large_brush_size"
+            android:layout_margin="2dp"
+            android:background="@color/red"
+            android:contentDescription="@string/red_paint_color"
+            android:onClick="presetPaintColorPressed"
+            android:src="@drawable/preset_paint_color_unpressed"
+            android:tag="@color/red"/>
+
+        <!--ORANGE Paint Color-->
+        <ImageButton
+            android:id="@+id/orange_paint_button"
+            android:layout_width="@dimen/medium_large_brush_size"
+            android:layout_height="@dimen/medium_large_brush_size"
+            android:layout_margin="2dp"
+            android:background="@color/orange"
+            android:contentDescription="@string/orange_paint_color"
+            android:onClick="presetPaintColorPressed"
+            android:src="@drawable/preset_paint_color_unpressed"
+            android:tag="@color/orange" />
+
+        <!--YELLOW Paint Color-->
+        <ImageButton
+            android:id="@+id/yellow_paint_button"
+            android:layout_width="@dimen/medium_large_brush_size"
+            android:layout_height="@dimen/medium_large_brush_size"
+            android:layout_margin="2dp"
+            android:background="@color/yellow"
+            android:contentDescription="@string/yellow_paint_color"
+            android:onClick="presetPaintColorPressed"
+            android:src="@drawable/preset_paint_color_unpressed"
+            android:tag="@color/yellow" />
+
+        <!--GREEN Paint Color-->
+        <ImageButton
+            android:id="@+id/green_paint_button"
+            android:layout_width="@dimen/medium_large_brush_size"
+            android:layout_height="@dimen/medium_large_brush_size"
+            android:layout_margin="2dp"
+            android:background="@color/green"
+            android:contentDescription="@string/green_paint_color"
+            android:onClick="presetPaintColorPressed"
+            android:src="@drawable/preset_paint_color_unpressed"
+            android:tag="@color/green" />
+
+        <!--BLUE Paint Color-->
+        <ImageButton
+            android:id="@+id/blue_paint_button"
+            android:layout_width="@dimen/medium_large_brush_size"
+            android:layout_height="@dimen/medium_large_brush_size"
+            android:layout_margin="2dp"
+            android:background="@color/blue"
+            android:contentDescription="@string/blue_paint_color"
+            android:onClick="presetPaintColorPressed"
+            android:src="@drawable/preset_paint_color_unpressed"
+            android:tag="@color/blue" />
+
+        <!--INDIGO Paint Color-->
+        <ImageButton
+            android:id="@+id/indigo_paint_button"
+            android:layout_width="@dimen/medium_large_brush_size"
+            android:layout_height="@dimen/medium_large_brush_size"
+            android:layout_margin="2dp"
+            android:background="@color/indigo"
+            android:contentDescription="@string/indigo_paint_color"
+            android:onClick="presetPaintColorPressed"
+            android:src="@drawable/preset_paint_color_unpressed"
+            android:tag="@color/indigo" />
+
+        <!--VIOLET Paint Color-->
+        <ImageButton
+            android:id="@+id/violet_paint_button"
+            android:layout_width="@dimen/medium_large_brush_size"
+            android:layout_height="@dimen/medium_large_brush_size"
+            android:layout_margin="2dp"
+            android:background="@color/violet"
+            android:contentDescription="@string/violet_paint_color"
+            android:onClick="presetPaintColorPressed"
+            android:src="@drawable/preset_paint_color_unpressed"
+            android:tag="@color/violet" />
+
+        <!--GRAY Paint Color-->
+        <ImageButton
+            android:id="@+id/gray_paint_button"
+            android:layout_width="@dimen/medium_large_brush_size"
+            android:layout_height="@dimen/medium_large_brush_size"
+            android:layout_margin="2dp"
+            android:background="@color/gray"
+            android:contentDescription="@string/gray_paint_color"
+            android:onClick="presetPaintColorPressed"
+            android:src="@drawable/preset_paint_color_unpressed"
+            android:tag="@color/gray"/>
+
+        <!--BLACK Paint Color-->
+        <ImageButton
+            android:id="@+id/black_paint_button"
+            android:layout_width="@dimen/medium_large_brush_size"
+            android:layout_height="@dimen/medium_large_brush_size"
+            android:layout_margin="2dp"
+            android:background="@color/black"
+            android:contentDescription="@string/black_paint_color"
+            android:onClick="presetPaintColorPressed"
+            android:src="@drawable/preset_paint_color_unpressed"
+            android:tag="@color/black"/>
+
+
+        <!--"Dummy Button" - does not show up on the layout.
+             This Button exists so that when all the buttons from the Preset-Color Pallet are removed
+             (because another button is pressed), the Painting doesnn't get removed-->
+        <ImageButton
+            android:id="@+id/dummy_button"
+            android:layout_width="100dp"
+            android:layout_height="@dimen/medium_large_brush_size"
+            android:layout_margin="2dp"
+            android:background="@color/white"
+            android:onClick="presetPaintColorPressed"/>
+
+    </LinearLayout>
+
+
+
+    <!--PaintView custom view - where the Painting will take place-->
+    <com.petertieu.android.pocketpaint.PaintView
+        android:id="@+id/paint_view"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginBottom="3dp"
@@ -67,97 +254,13 @@
         android:layout_marginRight="5dp"
         android:layout_marginTop="3dp"
         android:layout_weight="1"
-        android:background="@color/white"/>
+        android:background="@color/eraser"/>
 
 
 
-
-
-    <!--Layout for PRESET PAINT COLORS (Bottom Pallet)-->
-    <LinearLayout
-        android:id="@+id/paint_colors"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal" >
-
-        <!--RED Paint Color-->
-        <ImageButton
-            android:layout_width="@dimen/large_brush"
-            android:layout_height="@dimen/large_brush"
-            android:layout_margin="2dp"
-            android:background="@color/red"
-            android:contentDescription="@string/red_paint_color"
-            android:onClick="paintColorClicked"
-            android:src="@drawable/paint_color_unpressed"
-            android:tag="@color/red"/>
-
-        <!--ORANGE Paint Color-->
-        <ImageButton
-            android:layout_width="@dimen/large_brush"
-            android:layout_height="@dimen/large_brush"
-            android:layout_margin="2dp"
-            android:background="@color/orange"
-            android:contentDescription="@string/orange_paint_color"
-            android:onClick="paintColorClicked"
-            android:src="@drawable/paint_color_unpressed"
-            android:tag="@color/orange" />
-
-        <!--YELLOW Paint Color-->
-        <ImageButton
-            android:layout_width="@dimen/large_brush"
-            android:layout_height="@dimen/large_brush"
-            android:layout_margin="2dp"
-            android:background="@color/yellow"
-            android:contentDescription="@string/yellow_paint_color"
-            android:onClick="paintColorClicked"
-            android:src="@drawable/paint_color_unpressed"
-            android:tag="@color/yellow" />
-
-        <!--GREEN Paint Color-->
-        <ImageButton
-            android:layout_width="@dimen/large_brush"
-            android:layout_height="@dimen/large_brush"
-            android:layout_margin="2dp"
-            android:background="@color/green"
-            android:contentDescription="@string/green_paint_color"
-            android:onClick="paintColorClicked"
-            android:src="@drawable/paint_color_unpressed"
-            android:tag="@color/green" />
-
-        <!--BLUE Paint Color-->
-        <ImageButton
-            android:layout_width="@dimen/large_brush"
-            android:layout_height="@dimen/large_brush"
-            android:layout_margin="2dp"
-            android:background="@color/blue"
-            android:contentDescription="@string/blue_paint_color"
-            android:onClick="paintColorClicked"
-            android:src="@drawable/paint_color_unpressed"
-            android:tag="@color/blue" />
-
-        <!--INDIGO Paint Color-->
-        <ImageButton
-            android:layout_width="@dimen/large_brush"
-            android:layout_height="@dimen/large_brush"
-            android:layout_margin="2dp"
-            android:background="@color/indigo"
-            android:contentDescription="@string/indigo_paint_color"
-            android:onClick="paintColorClicked"
-            android:src="@drawable/paint_color_unpressed"
-            android:tag="@color/indigo" />
-
-        <!--VIOLET Paint Color-->
-        <ImageButton
-            android:layout_width="@dimen/large_brush"
-            android:layout_height="@dimen/large_brush"
-            android:layout_margin="2dp"
-            android:background="@color/violet"
-            android:contentDescription="@string/indigo_paint_color"
-            android:onClick="paintColorClicked"
-            android:src="@drawable/paint_color_unpressed"
-            android:tag="@color/violet" />
-
-    </LinearLayout>
+    <Button
+        android:layout_width="@dimen/medium_large_brush_size"
+        android:layout_height="@dimen/medium_large_brush_size"/>
 
 
 
