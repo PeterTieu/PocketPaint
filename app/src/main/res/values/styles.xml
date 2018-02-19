@@ -6,6 +6,12 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
+        <!--Override the android:windowBackground to make color of the 'non-PaintView' background from light gray to white-->
+        <item name="android:windowBackground">@color/white</item>
     </style>
+
+
+
 
 </resources>
