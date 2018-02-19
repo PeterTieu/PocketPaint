@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--Drawable for EXTRA-EXTRA LARGE brush size.
+     Called by dialog_size_chooser.xml -->
+<shape
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval"
+    android:dither="true">
+
+    <solid
+        android:color="@color/dark_gray"/>
+
+    <size
+        android:height="@dimen/extra_extra_large_brush_size"
+        android:width="@dimen/extra_extra_large_brush_size"/>
+
+</shape>
