@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--Layout for Size Chooser Dialog,
+    i.e. dialog to choose the size of the BRUSH and ERASER-->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical">
+
+
+    <!--xx-Small-->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:gravity="right"
+            android:text="@string/xx_small"/>
+
+        <ImageButton
+            android:id="@+id/extra_extra_small_brush_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:layout_marginLeft="20dp"
+            android:contentDescription="@string/extra_extra_small_brush_size"
+            android:src="@drawable/extra_extra_small_brush_size"/>
+    </LinearLayout>
+
+
+    <!--x-Small-->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:gravity="right"
+            android:text="@string/x_small"/>
+
+        <ImageButton
+            android:id="@+id/extra_small_brush_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:layout_marginLeft="20dp"
+            android:contentDescription="@string/extra_small_brush_size"
+            android:src="@drawable/extra_small_brush_size"/>
+    </LinearLayout>
+
+
+    <!--Small-->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:gravity="right"
+            android:text="@string/small"/>
+
+        <ImageButton
+            android:id="@+id/small_brush_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:layout_marginLeft="20dp"
+            android:contentDescription="@string/small_brush_size"
+            android:src="@drawable/small_brush_size"/>
+    </LinearLayout>
+
+
+    <!--Small-Medium-->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:gravity="right"
+            android:text="@string/small_medium"/>
+
+        <ImageButton
+            android:id="@+id/small_medium_brush_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:layout_marginLeft="20dp"
+            android:contentDescription="@string/small_medium_brush_size"
+            android:src="@drawable/small_medium_brush_size"/>
+    </LinearLayout>
+
+
+    <!--Medium-->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:gravity="right"
+            android:text="@string/medium"/>
+
+        <ImageButton
+            android:id="@+id/medium_brush_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:layout_marginLeft="20dp"
+            android:contentDescription="@string/medium_brush_size"
+            android:src="@drawable/medium_brush_size"/>
+    </LinearLayout>
+
+
+    <!--Medium-Large-->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:gravity="right"
+            android:text="@string/medium_large"/>
+
+        <ImageButton
+            android:id="@+id/medium_large_brush_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:layout_marginLeft="20dp"
+            android:contentDescription="@string/medium_large_brush_size"
+            android:src="@drawable/medium_large_brush_size"/>
+    </LinearLayout>
+
+
+    <!--Large-->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:gravity="right"
+            android:text="@string/large"/>
+
+        <ImageButton
+            android:id="@+id/large_brush_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:layout_marginLeft="20dp"
+            android:contentDescription="@string/large_brush_size"
+            android:src="@drawable/large_brush_size"/>
+    </LinearLayout>
+
+
+    <!--x-Large-->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:gravity="right"
+            android:text="@string/x_large"/>
+
+        <ImageButton
+            android:id="@+id/extra_large_brush_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:layout_marginLeft="20dp"
+            android:contentDescription="@string/extra_large_brush_size"
+            android:src="@drawable/extra_large_brush_size"/>
+    </LinearLayout>
+
+
+    <!--xx-Large-->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:gravity="right"
+            android:text="@string/xx_large"/>
+
+        <ImageButton
+            android:id="@+id/extra_extra_large_brush_size"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left"
+            android:layout_marginLeft="20dp"
+            android:contentDescription="@string/extra_extra_large_brush_size"
+            android:src="@drawable/extra_extra_large_brush_size"/>
+    </LinearLayout>
+
+
+</LinearLayout>
