@@ -3,6 +3,8 @@
 <!--Dimensions of the Brush (and Eraser) sizes-->
 <resources>
 
+    <dimen name="image_button_size">50dp</dimen>
+
     <dimen name="extra_extra_small_brush_size">2dp</dimen>
     <dimen name="extra_small_brush_size">5dp</dimen>
     <dimen name="small_brush_size">10dp</dimen>
