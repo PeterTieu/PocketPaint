@@ -1,6 +1,7 @@
 package com.petertieu.android.pocketpaint;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -8,8 +9,16 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.PointF;
+import android.graphics.PorterDuff;
+import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+
 import android.net.Uri;
+import android.os.Build;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
@@ -17,24 +26,39 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.Html;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+
+import yuku.ambilwarna.AmbilWarnaDialog;
 
 
 //Main interface of the app
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+
+
 
     //============= Declare/define instance variables ===========================
 
@@ -48,14 +72,40 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     LinearLayout mPresetPaintColors;
 
 
+    //Preset color ImageButtons
     private ImageButton mRedPaintImageButton, mOrangePaintImageButton, mYellowPaintImageButton, mGreenPaintImageButton, mBluePaintImageButton,
-                        mIndigoPaintImageButton, mVioletPaintImageButton, mGrayPaintImageButton, mBlackPaintImageButton;
+                        mIndigoPaintImageButton, mVioletPaintImageButton, mGrayPaintImageButton, mBlackPaintImageButton, mColorPickerImageButton,
+                        mColorIdentifierImageButton, mPictureAdderImageButton, mShapeAdderImageButton, mTextAdderImageButton;
+
+
+
+    //Custom colors
+    private final int MAX_NUMBER_OF_CUSTOM_COLORS = 6;
+
+    private TextView mCustomColorsTextView, mIdentifiedColorTextView;
+
+    //Custom color ImageButtons
+    private ImageButton mCustomColor1, mCustomColor2, mCustomColor3, mCustomColor4, mCustomColor5, mCustomColor6;
+
+    //Identified color ImageButton
+    private ImageButton mBrushIdentifiedColor;
+
+
+
+    private ImageButton mColorImageButtonPressed;
 
     //ImageButton for the current color
-    private ImageButton mCurrentPaintColor;
+    private ImageButton mInitialPaintColorPressed;
+
+    //Define mColorTag.
+    //mColorTag is the
+    private String mColorTag = "#0000FF";
 
     //ImageButtons (i.e. ACTION OPTIONS) in the top pallet
-    private ImageButton mNewPaintingImageButton, mBrushImageButton, mEraserImageButton, mSizeChooserImageButton, mSavePaintingImageButton;
+    private ImageButton mNewPaintingImageButton, mBrushImageButton, mEraserImageButton, mSizeChooserImageButton, mSavePaintingImageButton, mColorFillerImageButton;
+
+
+
 
 
     private Button mSizeFeedbackButton, mColorFeedbackButton;
@@ -79,6 +129,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+
+
         //Log in Logcat
         Log.i(TAG, "onCreate(..) called");
 
@@ -89,6 +141,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //Set the view of the layout to activity_main.xml
         setContentView(R.layout.activity_main);
+
+
 
         //Assign the PaintView ref. var. to the associated resource ID in the activity_main.xml file
         mPaintView = (PaintView) findViewById(R.id.paint_view);
@@ -112,11 +166,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
-
-
         //Set default color
-        mCurrentPaintColor = (ImageButton) mPresetPaintColors.getChildAt(7);
-        mCurrentPaintColor.setImageDrawable(getResources().getDrawable(R.drawable.preset_paint_color_pressed));
+        mInitialPaintColorPressed = (ImageButton) mPresetPaintColors.getChildAt(4); //Blue
+        mInitialPaintColorPressed.setImageDrawable(getResources().getDrawable(R.drawable.preset_paint_color_pressed));
 
 
 
@@ -128,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mBrushImageButton = (ImageButton) findViewById(R.id.brush_image_button);
         mBrushImageButton.setOnClickListener(this);
-        mBrushImageButton.setBackgroundResource(android.R.drawable.btn_default);
+        mBrushImageButton.setBackgroundResource(android.R.drawable.button_onoff_indicator_off);
 
 
 
@@ -145,11 +197,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mSizeFeedbackButton = (Button) findViewById(R.id.size_feedback);
         mSizeFeedbackButton.setEnabled(false);
-        mSizeFeedbackButton.setText("Size: " + mPaintView.getCurrentSize());
+        mSizeFeedbackButton.setText("xx-Small"); //Default starting size
 
         mColorFeedbackButton = (Button) findViewById(R.id.color_feedback);
         mColorFeedbackButton.setEnabled(false);
-        mColorFeedbackButton.setBackgroundColor(getResources().getColor(R.color.gray));
+        mColorFeedbackButton.setBackgroundColor(getResources().getColor(R.color.blue));
+        mColorFeedbackButton.setText("Brush");
+        mColorFeedbackButton.setTextSize(15);
+        mColorFeedbackButton.setTypeface(Typeface.DEFAULT_BOLD);
+        mColorFeedbackButton.setTextColor(Color.WHITE);
+
 
 
 
@@ -167,26 +224,132 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
-//        mExtraExtraSmallBrushSize = (int) getResources().getDimension(R.dimen.extra_extra_small_brush_size);
-//        mExtraSmallBrushSize    =   (int) getResources().getDimension(R.dimen.extra_small_brush_size);
-//        mSmallBrushSize         =   (int) getResources().getDimension(R.dimen.small_brush_size);
-//        mSmallMediumBrushSize   =   (int) getResources().getDimension(R.dimen.small_medium_brush_size);
-//        mMediumBrushSize        =   (int) getResources().getDimension(R.dimen.medium_brush_size);
-//        mMediumLargeBrushSize   =   (int) getResources().getDimension(R.dimen.medium_large_brush_size);
-//        mLargeBrushSize         =   (int) getResources().getDimension(R.dimen.large_brush_size);
-//        mExtraLargeBrushSize    =   (int) getResources().getDimension(R.dimen.extra_large_brush_size);
+        mColorPickerImageButton = (ImageButton) findViewById(R.id.color_picker);
+        mColorPickerImageButton.setOnClickListener(this);
+        mColorPickerImageButton.setBackgroundResource(android.R.drawable.btn_default);
+
+        mCustomColorsTextView = (TextView) findViewById(R.id.custom_colors);
+        mCustomColorsTextView.setVisibility(View.INVISIBLE);
+
+
+        //Custom color ImageButtons
+        mCustomColor1 = (ImageButton) findViewById(R.id.custom_color_1);
+        mCustomColor1.setTag("#00000000"); //Initialise tag of the custom color to TRANSPARENT
+        mCustomColor1.setVisibility(View.INVISIBLE); //Ensures that when no custom color is set for this ImageButton, it could not be pressed on
+
+
+        mCustomColor2 = (ImageButton) findViewById(R.id.custom_color_2);
+        mCustomColor2.setTag("#00000000"); //Initialise tag of the custom color to TRANSPARENT
+        mCustomColor2.setVisibility(View.INVISIBLE); //Ensures that when no custom color is set for this ImageButton, it could not be pressed on
+
+        mCustomColor3 = (ImageButton) findViewById(R.id.custom_color_3);
+        mCustomColor3.setTag("#00000000"); //Initialise tag of the custom color to TRANSPARENT
+        mCustomColor3.setVisibility(View.INVISIBLE); //Ensures that when no custom color is set for this ImageButton, it could not be pressed on
+
+
+        mCustomColor4 = (ImageButton) findViewById(R.id.custom_color_4);
+        mCustomColor4.setTag("#00000000"); //Initialise tag of the custom color to TRANSPARENT
+        mCustomColor4.setVisibility(View.INVISIBLE); //Ensures that when no custom color is set for this ImageButton, it could not be pressed on
+
+
+        mCustomColor5 = (ImageButton) findViewById(R.id.custom_color_5);
+        mCustomColor5.setTag("#00000000"); //Initialise tag of the custom color to TRANSPARENT
+        mCustomColor5.setVisibility(View.INVISIBLE); //Ensures that when no custom color is set for this ImageButton, it could not be pressed on
+
+
+        mCustomColor6 = (ImageButton) findViewById(R.id.custom_color_6);
+        mCustomColor6.setTag("#00000000"); //Initialise tag of the custom color to TRANSPARENT
+        mCustomColor6.setVisibility(View.INVISIBLE); //Ensures that when no custom color is set for this ImageButton, it could not be pressed on
 
 
 
-        mExtraExtraSmallBrushSize   = 2;
-        mExtraSmallBrushSize        = 5;
-        mSmallBrushSize             = 10;
-        mSmallMediumBrushSize       = 15;
-        mMediumBrushSize            = 20;
-        mMediumLargeBrushSize       = 25;
-        mLargeBrushSize             = 30;
-        mExtraLargeBrushSize        = 35;
-        mExtraExtraLargeBrushSize   = 40;
+
+
+
+
+        mColorIdentifierImageButton = (ImageButton) findViewById(R.id.color_identifier);
+        mColorIdentifierImageButton.setOnClickListener(this);
+        mColorIdentifierImageButton.setBackgroundResource(android.R.drawable.btn_default);
+
+        mIdentifiedColorTextView = (TextView) findViewById(R.id.identified_color_text);
+        mIdentifiedColorTextView.setVisibility(View.INVISIBLE);
+
+        mBrushIdentifiedColor = (ImageButton) findViewById(R.id.identified_color);
+        mBrushIdentifiedColor.setTag("#00000000"); //Initialise tag of the custom color to TRANSPARENT
+        mBrushIdentifiedColor.setVisibility(View.INVISIBLE);
+
+
+
+
+
+
+        mColorFillerImageButton = (ImageButton) findViewById(R.id.color_filler);
+        mColorFillerImageButton.setOnClickListener(this);
+        mColorFillerImageButton.setBackgroundResource(android.R.drawable.btn_default);
+
+
+        mPictureAdderImageButton = (ImageButton) findViewById(R.id.picture_adder);
+        mPictureAdderImageButton.setOnClickListener(this);
+        mPictureAdderImageButton.setBackgroundResource(android.R.drawable.btn_default);
+
+
+
+        mShapeAdderImageButton = (ImageButton) findViewById(R.id.shape_adder);
+        mShapeAdderImageButton.setOnClickListener(this);
+        mShapeAdderImageButton.setBackgroundResource(android.R.drawable.btn_default);
+
+
+
+
+        mTextAdderImageButton = (ImageButton) findViewById(R.id.text_adder);
+        mTextAdderImageButton.setOnClickListener(this);
+        mTextAdderImageButton.setBackgroundResource(android.R.drawable.btn_default);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//        EXTRA_EXTRA_SMALL_BRUSH_SIZE = (int) getResources().getDimension(R.dimen.extra_extra_small_brush_size);
+//        EXTRA_SMALL_BRUSH_SIZE    =   (int) getResources().getDimension(R.dimen.extra_small_brush_size);
+//        SMALL_BRUSH_SIZE         =   (int) getResources().getDimension(R.dimen.small_brush_size);
+//        SMALL_MEDIUM_BRUSH_SIZE   =   (int) getResources().getDimension(R.dimen.small_medium_brush_size);
+//        MEDIUM_BRUSH_SIZE        =   (int) getResources().getDimension(R.dimen.medium_brush_size);
+//        MEDIUM_LARGE_BRUSH_SIZE   =   (int) getResources().getDimension(R.dimen.medium_large_brush_size);
+//        LARGE_BRUSH_SIZE         =   (int) getResources().getDimension(R.dimen.large_brush_size);
+//        EXTRA_LARGE_BRUSH_SIZE    =   (int) getResources().getDimension(R.dimen.extra_large_brush_size);
+
+
+
+//        EXTRA_EXTRA_SMALL_BRUSH_SIZE   = 2;
+//        EXTRA_SMALL_BRUSH_SIZE        = 5;
+//        SMALL_BRUSH_SIZE             = 10;
+//        SMALL_MEDIUM_BRUSH_SIZE       = 15;
+//        MEDIUM_BRUSH_SIZE            = 20;
+//        MEDIUM_LARGE_BRUSH_SIZE       = 25;
+//        LARGE_BRUSH_SIZE             = 30;
+//        EXTRA_LARGE_BRUSH_SIZE        = 35;
+//        EXTRA_EXTRA_LARGE_BRUSH_SIZE   = 40;
+
+//
+//        mExtraExtraSmallBrushSize   = 5;
+//        mExtraSmallBrushSize        = 13;
+//        mSmallBrushSize             = 26;
+//        mSmallMediumBrushSize       = 39;
+//        mMediumBrushSize            = 52;
+//        mMediumLargeBrushSize       = 65;
+//        mLargeBrushSize             = 78;
+//        mExtraLargeBrushSize        = 91;
+//        mExtraExtraLargeBrushSize   = 105;
 
 
 
@@ -244,41 +407,131 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.save_painting_image_button:
                 showSavePaintingConfirmationDialog();
                 break;
+
+
+            case R.id.color_picker:
+                showColorPickerDialog();
+                break;
+
+
+            case R.id.color_identifier:
+                selectColorIdentifier();
+                break;
+
+
+            case R.id.color_filler:
+                selectColorFiller();
+                break;
+
+
+            case R.id.picture_adder:
+                selectPictureAdder();
+                break;
+
+
+            case R.id.shape_adder:
+                showShapeAdderDialog();
+                break;
+
+
+            case R.id.text_adder:
+                selectTextAdder();
+                break;
+
         }
 
     }
-
-
 
 
     //Listener for each PRESET PAINT COLOR ImageButton (called by the onClick attribute of each PRESET PAINT COLOR ImageButton in activity_main.xml)
-    public void presetPaintColorPressed(View view){
+    public void presetPaintColorPressed(View presetPaintColorImageButton) {
 
-        if (view != getCurrentFocus()){
-            ImageButton imageButton = (ImageButton) view;
 
-            String colorTag = imageButton.getTag().toString();
+        mColorImageButtonPressed = (ImageButton) presetPaintColorImageButton;
 
-            mPaintView.setCurrentPaintColor(colorTag);
+        mColorTag = mColorImageButtonPressed.getTag().toString();
 
-            mColorFeedbackButton.setBackgroundColor(Color.parseColor(colorTag));
 
-            imageButton.setImageDrawable(getResources().getDrawable(R.drawable.preset_paint_color_pressed));
 
-            mCurrentPaintColor.setImageDrawable(getResources().getDrawable(R.drawable.preset_paint_color_unpressed));
 
-            mCurrentPaintColor = (ImageButton) view;
 
-            mPaintView.setEraser(false);
 
-            mPaintView.setCurrentSize(mPaintView.getPreviousSize());
+        mPaintView.setCurrentPaintColor(mColorTag);
 
-            mSizeFeedbackButton.setText("Size: " + mPaintView.getCurrentSize());
+        //Update mColorFeedbackButton
+        mColorFeedbackButton.setBackgroundColor(Color.parseColor(mColorTag));
 
+
+
+
+
+        //If the color pressed on is WHITE, then change the text color of th mColorFeedbackButton to BLACK, otherwise, keep the text color as WHITE for all other colors
+        if (Color.parseColor(mColorTag) == Color.WHITE){
+            mColorFeedbackButton.setTextColor(Color.BLACK);
+        }
+        else{
+            mColorFeedbackButton.setTextColor(Color.WHITE);
         }
 
 
+
+
+//            mColorImageButtonPressed.setImageDrawable(getResources().getDrawable(R.drawable.preset_paint_color_pressed));
+//            mInitialPaintColorPressed.setImageDrawable(getResources().getDrawable(R.drawable.preset_paint_color_unpressed));
+//            mInitialPaintColorPressed = (ImageButton) presetPaintColorImageButton;
+
+        //Make only the current color ImageButton pressed to appear in the "pressed state" - i.e. all other color ImageButtons are in the "unpressed" state
+        newColorImageButtonPressedToPressedState(mColorImageButtonPressed);
+
+
+        mPaintView.setEraser(false);
+
+        mPaintView.setCurrentSize(mPaintView.getPreviousSize());
+
+        mSizeFeedbackButton.setText(mPaintView.getCurrentSizeString());
+
+
     }
+
+
+
+
+
+    private void newColorImageButtonPressedToPressedState(ImageButton currentColorPressed){
+
+
+        mRedPaintImageButton.setImageDrawable(getResources().getDrawable(R.drawable.preset_paint_color_unpressed));
+        mOrangePaintImageButton.setImageDrawable(getResources().getDrawable(R.drawable.preset_paint_color_unpressed));
+        mYellowPaintImageButton.setImageDrawable(getResources().getDrawable(R.drawable.preset_paint_color_unpressed));
+        mGreenPaintImageButton.setImageDrawable(getResources().getDrawable(R.drawable.preset_paint_color_unpressed));
+        mBluePaintImageButton.setImageDrawable(getResources().getDrawable(R.drawable.preset_paint_color_unpressed));
+        mIndigoPaintImageButton.setImageDrawable(getResources().getDrawable(R.drawable.preset_paint_color_unpressed));
+        mVioletPaintImageButton.setImageDrawable(getResources().getDrawable(R.drawable.preset_paint_color_unpressed));
+        mGrayPaintImageButton.setImageDrawable(getResources().getDrawable(R.drawable.preset_paint_color_unpressed));
+        mBlackPaintImageButton.setImageDrawable(getResources().getDrawable(R.drawable.preset_paint_color_unpressed));
+
+
+        mCustomColor1.setImageDrawable(getResources().getDrawable(R.drawable.preset_paint_color_unpressed));
+        mCustomColor2.setImageDrawable(getResources().getDrawable(R.drawable.preset_paint_color_unpressed));
+        mCustomColor3.setImageDrawable(getResources().getDrawable(R.drawable.preset_paint_color_unpressed));
+        mCustomColor4.setImageDrawable(getResources().getDrawable(R.drawable.preset_paint_color_unpressed));
+        mCustomColor5.setImageDrawable(getResources().getDrawable(R.drawable.preset_paint_color_unpressed));
+        mCustomColor6.setImageDrawable(getResources().getDrawable(R.drawable.preset_paint_color_unpressed));
+
+
+        mBrushIdentifiedColor.setImageDrawable(getResources().getDrawable(R.drawable.preset_paint_color_unpressed));
+
+
+
+
+        currentColorPressed.setImageDrawable(getResources().getDrawable(R.drawable.preset_paint_color_pressed));
+    }
+
+
+
+
+
+
 
 
 
@@ -289,6 +542,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     public void showNewPaintingConfirmationDialog(){
+
+
         final AlertDialog.Builder newPaintingConfirmationDialog = new AlertDialog.Builder(this);
         newPaintingConfirmationDialog.setTitle("New Painting");
         newPaintingConfirmationDialog.setMessage("Start a new Painting?");
@@ -296,9 +551,46 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        removeAllColorImageButtons();
+
+                        //If the touch event exists for mPaintView (in case mColorIdentifier is pressed), then set it to null.
+                        //If this line is omitted, then IF the touch event is set for mPaintView upon pressing mColorIdentifier or mColorFiller, we wouldn't be able to exit it!
+                        mPaintView.setOnTouchListener(null);
+
+                        //mLines to null, so that it does not refer to any pre-existing ArrayList of Shape objects
+                        mLines = null;
+
+                        //mRectangles to null, so that it does not refer to any pre-existing ArrayList of Shape objects
+                        mRectangles = null;
+
+                        //mOvals to null, so that it does not refer to any pre-existing ArrayList of Shape objects
+                        mOvals = null;
+
+                        //mCircles to null, so that it does not refer to any pre-existing ArrayList of Shape objects
+                        mCircles = null;
+
+
+
+                        hideAllColors();
                         setBackgroundButtonPressed(mNewPaintingImageButton);
                         mPaintView.startNewPainting();
+
+
+                        //"Disable" the Paint color (so that when mPaintView is touched, nothing happens)
+                        mPaintView.mPaint.setColor(Color.TRANSPARENT);
+
+
+                        mSizeFeedbackButton.setText(null);
+
+                        //Update mColorFeedbackButton
+                        mColorFeedbackButton.setText(null);
+                        mColorFeedbackButton.setText("No Action To Perform");
+                        mColorFeedbackButton.setTextSize(9);
+                        mColorFeedbackButton.setTextColor(Color.BLACK);
+                        mColorFeedbackButton.setBackground(getResources().getDrawable(R.drawable.button_background_checkers));
+
+
+
+
                         dialogInterface.dismiss();
 
                         Toast newPaintingToast = Toast.makeText(getApplicationContext(), "New Painting", Toast.LENGTH_LONG);
@@ -327,11 +619,52 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void selectBrush(){
 
+
+        //If the touch event exists for mPaintView (in case mColorIdentifier is pressed), then set it to null.
+        //If this line is omitted, then IF the touch event is set for mPaintView upon pressing mColorIdentifier or mColorFiller, we wouldn't be able to exit it!
+        mPaintView.setOnTouchListener(null);
+
+
+
+        //Turn the mBrushImageButton to look like it is in the 'pressed state'
         setBackgroundButtonPressed(mBrushImageButton);
 
-        showAllColorImageButtons();
+
+
+
+        showAllColors();
+
+
+
 
         mPaintView.setEraser(false);
+
+
+
+
+        //If the current size has NOT been set yet, then default initialise it to "x-Small".
+        // This is necessary when an ImageButton, e.g. mColorPickerImageButton, is pressed and then the mBrushImageButton is pressed
+        if (mPaintView.getCurrentSizeString().isEmpty()){
+            mSizeFeedbackButton.setText("Small");
+        }
+        else{
+            mSizeFeedbackButton.setText(mPaintView.getCurrentSizeString());
+        }
+
+
+        //Update mColorFeedbackButton
+        mColorFeedbackButton.setText("Brush");
+        mColorFeedbackButton.setTextColor(Color.WHITE);
+        mColorFeedbackButton.setTextSize(15);
+
+
+
+
+
+        if (mColorTag != null || !mColorTag.isEmpty()) {
+            mColorFeedbackButton.setBackgroundColor(Color.parseColor(mColorTag));
+        }
+
 
 
 
@@ -350,10 +683,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void selectEraser(){
 
+        //If the touch event exists for mPaintView (in case mColorIdentifier is pressed), then set it to null.
+        //If this line is omitted, then IF the touch event is set for mPaintView upon pressing mColorIdentifier, we wouldn't be able to exit it!
+        mPaintView.setOnTouchListener(null);
+
+
+
         mPaintView.setEraser(true);
+
+        //Turn the mEraserImageButton to look like it is in the 'pressed state'
         setBackgroundButtonPressed(mEraserImageButton);
-        showAllColorImageButtons();
-        removeAllColorImageButtons();
+        hideAllColors();
+
+
+        //If the current size has NOT been set yet, then default initialise it to "x-Small".
+        // This is necessary when an ImageButton, e.g. mColorPickerImageButton, is pressed and then the mEraserImageButton is pressed
+        if (mPaintView.getCurrentSizeString().isEmpty()){
+            mSizeFeedbackButton.setText("Small");
+        }
+        else{
+            mSizeFeedbackButton.setText(mPaintView.getCurrentSizeString());
+        }
+
+        mColorFeedbackButton.setText("Eraser");
+        mColorFeedbackButton.setTextColor(getResources().getColor(R.color.dark_red));
+        mColorFeedbackButton.setTextSize(18);
+        mColorFeedbackButton.setBackground(getResources().getDrawable(R.drawable.button_background_eraser));
+//        mColorFeedbackButton.setPadding(0, 10, 0, 0);
+
+
+
+
 
     }
 
@@ -368,6 +728,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     public void showSizeSelectorChooserDialog(){
+
+
         final Dialog sizeSelectorChooserDialog = new Dialog(this);
 
         sizeSelectorChooserDialog.setContentView(R.layout.dialog_size_chooser);
@@ -381,11 +743,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onClick(View view) {
 //                mPresetPaintColors.setVisibility(View.GONE);
-                mPaintView.setCurrentSize(mExtraExtraSmallBrushSize);
-                mPaintView.setPreviousSize(mExtraExtraSmallBrushSize);
-                mSizeFeedbackButton.setText("Size: " + mPaintView.getCurrentSize());
+                mPaintView.setCurrentSize(mPaintView.mExtraExtraSmallBrushSize);
+                mPaintView.setPreviousSize(mPaintView.mExtraExtraSmallBrushSize);
+                mSizeFeedbackButton.setText(mPaintView.getCurrentSizeString());
                 sizeSelectorChooserDialog.dismiss();
-                Toast sizeToast = Toast.makeText(getApplicationContext(), "Size: " + mPaintView.getCurrentSize(), Toast.LENGTH_SHORT);
+                Toast sizeToast = Toast.makeText(getApplicationContext(), mPaintView.getCurrentSizeString(), Toast.LENGTH_SHORT);
                 sizeToast.show();
             }
         });
@@ -396,11 +758,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onClick(View view) {
 //                mPresetPaintColors.setVisibility(View.GONE);
-                mPaintView.setCurrentSize(mExtraSmallBrushSize);
-                mPaintView.setPreviousSize(mExtraSmallBrushSize);
-                mSizeFeedbackButton.setText("Size: " + mPaintView.getCurrentSize());
+                mPaintView.setCurrentSize(mPaintView.mExtraSmallBrushSize);
+                mPaintView.setPreviousSize(mPaintView.mExtraSmallBrushSize);
+                mSizeFeedbackButton.setText(mPaintView.getCurrentSizeString());
                 sizeSelectorChooserDialog.dismiss();
-                Toast sizeToast = Toast.makeText(getApplicationContext(), "Size: " + mPaintView.getCurrentSize(), Toast.LENGTH_SHORT);
+                Toast sizeToast = Toast.makeText(getApplicationContext(), mPaintView.getCurrentSizeString(), Toast.LENGTH_SHORT);
                 sizeToast.show();
             }
         });
@@ -411,11 +773,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onClick(View view) {
 //                mPresetPaintColors.setVisibility(View.GONE);
-                mPaintView.setCurrentSize(mSmallBrushSize);
-                mPaintView.setPreviousSize(mSmallBrushSize);
-                mSizeFeedbackButton.setText("Size: " + mPaintView.getCurrentSize());
+                mPaintView.setCurrentSize(mPaintView.mSmallBrushSize);
+                mPaintView.setPreviousSize(mPaintView.mSmallBrushSize);
+                mSizeFeedbackButton.setText(mPaintView.getCurrentSizeString());
                 sizeSelectorChooserDialog.dismiss();
-                Toast sizeToast = Toast.makeText(getApplicationContext(), "Size: " + mPaintView.getCurrentSize(), Toast.LENGTH_SHORT);
+                Toast sizeToast = Toast.makeText(getApplicationContext(), mPaintView.getCurrentSizeString(), Toast.LENGTH_SHORT);
                 sizeToast.show();
             }
         });
@@ -427,11 +789,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onClick(View view) {
 //                mPresetPaintColors.setVisibility(View.GONE);
-                mPaintView.setCurrentSize(mSmallMediumBrushSize);
-                mPaintView.setPreviousSize(mSmallMediumBrushSize);
-                mSizeFeedbackButton.setText("Size: " + mPaintView.getCurrentSize());
+                mPaintView.setCurrentSize(mPaintView.mSmallMediumBrushSize);
+                mPaintView.setPreviousSize(mPaintView.mSmallMediumBrushSize);
+                mSizeFeedbackButton.setText(mPaintView.getCurrentSizeString());
                 sizeSelectorChooserDialog.dismiss();
-                Toast sizeToast = Toast.makeText(getApplicationContext(), "Size: " + mPaintView.getCurrentSize(), Toast.LENGTH_SHORT);
+                Toast sizeToast = Toast.makeText(getApplicationContext(),  mPaintView.getCurrentSizeString(), Toast.LENGTH_SHORT);
                 sizeToast.show();
             }
         });
@@ -443,11 +805,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onClick(View view) {
 //                mPresetPaintColors.setVisibility(View.GONE);
-                mPaintView.setCurrentSize(mMediumBrushSize);
-                mPaintView.setPreviousSize(mMediumBrushSize);
-                mSizeFeedbackButton.setText("Size: " + mPaintView.getCurrentSize());
+                mPaintView.setCurrentSize(mPaintView.mMediumBrushSize);
+                mPaintView.setPreviousSize(mPaintView.mMediumBrushSize);
+                mSizeFeedbackButton.setText(mPaintView.getCurrentSizeString());
                 sizeSelectorChooserDialog.dismiss();
-                Toast sizeToast = Toast.makeText(getApplicationContext(), "Size: " + mPaintView.getCurrentSize(), Toast.LENGTH_SHORT);
+                Toast sizeToast = Toast.makeText(getApplicationContext(), mPaintView.getCurrentSizeString(), Toast.LENGTH_SHORT);
                 sizeToast.show();
             }
         });
@@ -459,11 +821,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onClick(View view) {
 //                mPresetPaintColors.setVisibility(View.GONE);
-                mPaintView.setCurrentSize(mMediumLargeBrushSize);
-                mPaintView.setPreviousSize(mMediumLargeBrushSize);
-                mSizeFeedbackButton.setText("Size: " + mPaintView.getCurrentSize());
+                mPaintView.setCurrentSize(mPaintView.mMediumLargeBrushSize);
+                mPaintView.setPreviousSize(mPaintView.mMediumLargeBrushSize);
+                mSizeFeedbackButton.setText(mPaintView.getCurrentSizeString());
                 sizeSelectorChooserDialog.dismiss();
-                Toast sizeToast = Toast.makeText(getApplicationContext(), "Size: " + mPaintView.getCurrentSize(), Toast.LENGTH_SHORT);
+                Toast sizeToast = Toast.makeText(getApplicationContext(), mPaintView.getCurrentSizeString(), Toast.LENGTH_SHORT);
                 sizeToast.show();
             }
         });
@@ -475,11 +837,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onClick(View view) {
 //                mPresetPaintColors.setVisibility(View.GONE);
-                mPaintView.setCurrentSize(mLargeBrushSize);
-                mPaintView.setPreviousSize(mLargeBrushSize);
-                mSizeFeedbackButton.setText("Size: " + mPaintView.getCurrentSize());
+                mPaintView.setCurrentSize(mPaintView.mLargeBrushSize);
+                mPaintView.setPreviousSize(mPaintView.mLargeBrushSize);
+                mSizeFeedbackButton.setText(mPaintView.getCurrentSizeString());
                 sizeSelectorChooserDialog.dismiss();
-                Toast sizeToast = Toast.makeText(getApplicationContext(), "Size: " + mPaintView.getCurrentSize(), Toast.LENGTH_SHORT);
+                Toast sizeToast = Toast.makeText(getApplicationContext(), mPaintView.getCurrentSizeString(), Toast.LENGTH_SHORT);
                 sizeToast.show();
             }
         });
@@ -490,11 +852,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onClick(View view) {
 //                mPresetPaintColors.setVisibility(View.GONE);
-                mPaintView.setCurrentSize(mExtraLargeBrushSize);
-                mPaintView.setPreviousSize(mExtraLargeBrushSize);
-                mSizeFeedbackButton.setText("Size: " + mPaintView.getCurrentSize());
+                mPaintView.setCurrentSize(mPaintView.mExtraLargeBrushSize);
+                mPaintView.setPreviousSize(mPaintView.mExtraLargeBrushSize);
+                mSizeFeedbackButton.setText(mPaintView.getCurrentSizeString());
                 sizeSelectorChooserDialog.dismiss();
-                Toast sizeToast = Toast.makeText(getApplicationContext(), "Size: " + mPaintView.getCurrentSize(), Toast.LENGTH_SHORT);
+                Toast sizeToast = Toast.makeText(getApplicationContext(), mPaintView.getCurrentSizeString(), Toast.LENGTH_SHORT);
                 sizeToast.show();
             }
         });
@@ -505,17 +867,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onClick(View view) {
 //                mPresetPaintColors.setVisibility(View.GONE);
-                mPaintView.setCurrentSize(mExtraExtraLargeBrushSize);
-                mPaintView.setPreviousSize(mExtraExtraLargeBrushSize);
-                mSizeFeedbackButton.setText("Size: " + mPaintView.getCurrentSize());
+                mPaintView.setCurrentSize(mPaintView.mExtraExtraLargeBrushSize);
+                mPaintView.setPreviousSize(mPaintView.mExtraExtraLargeBrushSize);
+                mSizeFeedbackButton.setText( mPaintView.getCurrentSizeString());
                 sizeSelectorChooserDialog.dismiss();
-                Toast sizeToast = Toast.makeText(getApplicationContext(), "Size: " + mPaintView.getCurrentSize(), Toast.LENGTH_SHORT);
+                Toast sizeToast = Toast.makeText(getApplicationContext(), mPaintView.getCurrentSizeString(), Toast.LENGTH_SHORT);
                 sizeToast.show();
             }
         });
 
 
         sizeSelectorChooserDialog.show();
+
+
 
     }
 
@@ -540,6 +904,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     public void showSavePaintingConfirmationDialog(){
+
+
+
+
         final AlertDialog.Builder savePaintingConfirmationDialog = new AlertDialog.Builder(this);
 
 
@@ -563,7 +931,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-                            removeAllColorImageButtons();
+                            hideAllColors();
                             Intent intent = new Intent();
                             intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                             Uri uri = Uri.fromParts("package", getPackageName(), null);
@@ -583,8 +951,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
-                            removeAllColorImageButtons();
+
+                            //If the touch event exists for mPaintView (in case mColorIdentifier is pressed), then set it to null.
+                            //If this line is omitted, then IF the touch event is set for mPaintView upon pressing mColorIdentifier, we wouldn't be able to exit it!
+                            mPaintView.setOnTouchListener(null);
+
+
+                            hideAllColors();
                             setBackgroundButtonPressed(mSavePaintingImageButton);
+
+                            mColorFeedbackButton.setText(null);
+                            mColorFeedbackButton.setBackgroundColor(Color.WHITE);
+
+                            //"Disable" the Paint color (so that when mPaintView is touched, nothing happens)
+                            mPaintView.mPaint.setColor(Color.TRANSPARENT);
+
+
+                            mSizeFeedbackButton.setText(null);
+
+                            //Update mColorFeedbackButton
+                            mColorFeedbackButton.setText(null);
+                            mColorFeedbackButton.setText("No Action To Perform");
+                            mColorFeedbackButton.setTextSize(9);
+                            mColorFeedbackButton.setTextColor(Color.BLACK);
+                            mColorFeedbackButton.setBackground(getResources().getDrawable(R.drawable.button_background_checkers));
+
+
+
                             mPaintView.setDrawingCacheEnabled(true);
 
                             String paintingSaved = MediaStore.Images.Media.insertImage(getContentResolver(), mPaintView.getDrawingCache(), UUID.randomUUID().toString() + ".png", "PocketPaint");
@@ -618,6 +1011,1253 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
+
+
+    private int mCustomColorCount = 0;
+    private boolean mCustomColorAssigned = false;
+
+
+
+    public void showColorPickerDialog(){
+
+
+        //If the touch event exists for mPaintView (in case mColorIdentifier is pressed), then set it to null.
+        //If this line is omitted, then IF the touch event is set for mPaintView upon pressing mColorIdentifier, we wouldn't be able to exit it!
+        mPaintView.setOnTouchListener(null);
+
+
+
+
+        AmbilWarnaDialog dialog = new AmbilWarnaDialog(MainActivity.this, mPaintView.getCurrentPaintColor(), false, new AmbilWarnaDialog.OnAmbilWarnaListener() {
+
+            @Override
+            public void onOk(AmbilWarnaDialog dialog, int color) {
+
+                mCustomColorAssigned = true;
+
+
+                setBackgroundButtonPressed(mColorPickerImageButton);
+
+
+                //'color' is the color picked. It is in RGB format (e.g. black color is -16777216, as there are 16,777,216 RGB colors, and black is the last one)
+                //We need to turn 'color' to a hexadecimal format (e.g. #000000, #FF0000, etc.) so that we could feed it to mPaintView.setCurrentPaintColor()
+                String colorInHexString = "#" + Integer.toHexString(color);
+
+                //Set the current color
+                mPaintView.setCurrentPaintColor(colorInHexString);
+
+
+                mSizeFeedbackButton.setText(mPaintView.getCurrentSizeString());
+
+
+                mColorFeedbackButton.setBackgroundColor(Color.parseColor(colorInHexString));
+                mColorFeedbackButton.setText("Brush");
+                mColorFeedbackButton.setTextSize(15);
+                mColorFeedbackButton.setTextColor(Color.WHITE);
+
+
+                showAllColors();
+
+
+                Log.i(TAG, "mCustomColorCount:" + mCustomColorCount);
+
+
+                mCustomColorCount++;
+
+                mCustomColorCount = mCustomColorCount % MAX_NUMBER_OF_CUSTOM_COLORS;
+
+
+                Toast toast = Toast.makeText(getApplicationContext(), "New Custom Color", Toast.LENGTH_SHORT);
+
+
+                switch (mCustomColorCount) {
+
+                    case 1:
+                        mCustomColor1.setBackgroundColor(Color.parseColor(colorInHexString));
+                        mCustomColor1.setTag(colorInHexString);
+                        newColorImageButtonPressedToPressedState(mCustomColor1);
+                        toast.show();
+                        break;
+
+
+                    case 2:
+                        mCustomColor2.setBackgroundColor(Color.parseColor(colorInHexString));
+                        mCustomColor2.setTag(colorInHexString);
+
+                        newColorImageButtonPressedToPressedState(mCustomColor2);
+                        toast.show();
+                        break;
+
+
+                    case 3:
+                        mCustomColor3.setBackgroundColor(Color.parseColor(colorInHexString));
+                        mCustomColor3.setTag(colorInHexString);
+                        newColorImageButtonPressedToPressedState(mCustomColor3);
+                        toast.show();
+                        break;
+
+
+                    case 4:
+                        mCustomColor4.setBackgroundColor(Color.parseColor(colorInHexString));
+                        mCustomColor4.setTag(colorInHexString);
+
+                        newColorImageButtonPressedToPressedState(mCustomColor4);
+                        toast.show();
+                        break;
+
+
+                    case 5:
+                        mCustomColor5.setBackgroundColor(Color.parseColor(colorInHexString));
+                        mCustomColor5.setTag(colorInHexString);
+                        newColorImageButtonPressedToPressedState(mCustomColor5);
+                        toast.show();
+                        break;
+
+
+                    case 0:
+                        mCustomColor6.setBackgroundColor(Color.parseColor(colorInHexString));
+                        mCustomColor6.setTag(colorInHexString);
+                        newColorImageButtonPressedToPressedState(mCustomColor6);
+                        toast.show();
+                        break;
+
+
+
+                }
+
+
+                if (colorInHexString.equals("#ffffffff")){
+                    mColorFeedbackButton.setTextColor(Color.BLACK);
+                }
+                else{
+                    mColorFeedbackButton.setTextColor(Color.WHITE);
+                }
+
+
+
+            }
+
+            @Override
+            public void onCancel(AmbilWarnaDialog dialog) {
+                Toast.makeText(getApplicationContext(), "Action canceled", Toast.LENGTH_SHORT).show();
+            }
+
+
+        });
+
+        dialog.getDialog().setTitle("Assign a Custom Color");
+
+
+        dialog.show();
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private int mIdentifiedColor;
+    private boolean mIsColorIdentifierAssigned = false;
+
+
+
+
+    private void selectColorIdentifier(){
+
+
+
+        mSizeFeedbackButton.setText(null);
+        mColorFeedbackButton.setText("Color Identifier");
+        mColorFeedbackButton.setTextSize(13);
+        mColorFeedbackButton.setTextColor(Color.WHITE);
+        mColorFeedbackButton.setBackgroundColor(Color.BLACK);
+
+
+
+        setBackgroundButtonPressed(mColorIdentifierImageButton);
+        hideAllColors();
+
+
+
+
+
+        mPaintView.mPaint.setColor(Color.TRANSPARENT);
+
+
+        mBrushIdentifiedColor.setVisibility(View.VISIBLE);
+
+        mPaintView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+
+                mIsColorIdentifierAssigned = true;
+
+                mIdentifiedColorTextView.setVisibility(View.VISIBLE);
+
+
+
+
+                //Get the x/y-axis co-ordinates of the CURRENT point of touch
+                float touchX = motionEvent.getX(); //x-axis co-ordinate
+                float touchY = motionEvent.getY(); //y-axis co-ordinate
+
+
+                if (motionEvent.getAction() == MotionEvent.ACTION_MOVE){
+
+
+
+
+
+
+
+                    //GET COLOR OF CURRENT CO-ORDINATE
+                    int pixel = mPaintView.getBitmap().getPixel((int) touchX, (int) touchY);
+
+                    int redComponent = Color.red(pixel);
+                    int greenComponent = Color.green(pixel);
+                    int blueComponent = Color.blue(pixel);
+
+                    mIdentifiedColor = Color.rgb(redComponent, greenComponent, blueComponent);
+
+                    String identifiedColorString = "#" + Integer.toHexString(mIdentifiedColor);
+
+
+
+
+
+
+
+
+
+                    Log.i(TAG, "color in hex string: " + identifiedColorString);
+
+
+
+                    mPaintView.setCurrentPaintColor(identifiedColorString);
+
+
+                    mBrushIdentifiedColor.setBackgroundColor(Color.parseColor(identifiedColorString));
+                    mBrushIdentifiedColor.setTag(identifiedColorString);
+                    newColorImageButtonPressedToPressedState(mBrushIdentifiedColor);
+
+
+
+
+
+                    //Set the current color
+                    mColorFeedbackButton.setBackgroundColor(Color.parseColor(identifiedColorString));
+
+
+                    mColorTag = identifiedColorString;
+
+
+
+
+                    //If the identified color is WHITE, then change the text color of the mColorFeebackButton to BLACK. Otherwise, keep the text color as WHITE for all other colors
+                    if (identifiedColorString.equals("#ffffffff")){
+                        Log.i(TAG, "color white");
+                        mColorFeedbackButton.setTextColor(Color.BLACK);
+                    }
+                    else{
+                        mColorFeedbackButton.setTextColor(Color.WHITE);
+                    }
+
+//                    Log.i(TAG, "Color: " + Color.parseColor(colorInHexString));
+
+
+                    return true;
+                }
+
+
+
+                if (motionEvent.getAction() == MotionEvent.ACTION_UP){
+
+
+
+                    return false;
+
+
+                }
+
+
+
+
+
+
+                return true;
+            }
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+    }
+
+
+
+
+
+
+
+    private void selectColorFiller(){
+
+        showAllColors();
+        setBackgroundButtonPressed(mColorFillerImageButton);
+
+        mSizeFeedbackButton.setText("");
+
+        mColorFeedbackButton.setText("Fill Color");
+        mColorFeedbackButton.setTextColor(Color.WHITE);
+        mColorFeedbackButton.setBackgroundColor(Color.parseColor(mColorTag));
+        mColorFeedbackButton.setTextSize(15);
+
+        if (Color.parseColor(mColorTag) == Color.WHITE){
+            mColorFeedbackButton.setTextColor(Color.BLACK);
+        }
+        else{
+            mColorFeedbackButton.setTextColor(Color.WHITE);
+        }
+
+
+
+
+        mPaintView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+
+                //Get the x/y-axis co-ordinates of the CURRENT point of touch
+                float touchX = motionEvent.getX(); //x-axis co-ordinate
+                float touchY = motionEvent.getY(); //y-axis co-ordinate
+
+
+                if (motionEvent.getAction() == MotionEvent.ACTION_MOVE) {
+
+
+
+
+
+
+                    //GET color of co-ordinate pressed - initialColor
+                    int pixel = mPaintView.getBitmap().getPixel((int) touchX, (int) touchY);
+
+                    int redComponent = Color.red(pixel);
+                    int greenComponent = Color.green(pixel);
+                    int blueComponent = Color.blue(pixel);
+
+                    int initialColor = Color.rgb(redComponent, greenComponent, blueComponent);
+
+
+
+
+
+
+
+
+                    //GET color to FILL to
+
+                    int destinationColor = Color.parseColor(mColorTag);
+
+
+
+                    //GET Bitmap
+                    Bitmap bitmap = mPaintView.mBitmap;
+
+
+                    QueueLinearFloodFiller queueLinearFloodFiller = new QueueLinearFloodFiller(bitmap, initialColor, destinationColor);
+
+                    queueLinearFloodFiller.floodFill((int) touchX, (int) touchY);
+
+
+
+
+
+                    //Update the mPaintView View. Without this line, the mPaintView would only be updated WHEN another ImageButton is pressed
+                    mPaintView.invalidate();
+
+
+
+                    return true;
+                }
+
+
+
+                return true;
+            }
+        });
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private final int REQUEST_CODE_PICTURE_GALLERY =  1;
+
+
+
+
+    private void selectPictureAdder(){
+
+        hideAllColors();
+
+        mSizeFeedbackButton.setText("");
+
+        mColorFeedbackButton.setText("Add Picture");
+        mColorFeedbackButton.setTextColor(Color.BLACK);
+        mColorFeedbackButton.setBackgroundResource(R.drawable.button_background_checkers);
+        mColorFeedbackButton.setTextSize(15);
+
+
+
+
+
+        //    //Open gallery activity/app
+
+
+        //Create implicit intent (to open gallery activity/app)
+        Intent choosePictureIntent = new Intent();
+
+        //Set action to open gallery activity/app
+        choosePictureIntent.setAction(Intent.ACTION_GET_CONTENT);
+
+        //Set type of media to open (i.e. images, instead of videos or both)
+        choosePictureIntent.setType("image/*");
+
+
+
+//        //Create PackageManager (which has access to all aps installed in the device)
+//        PackageManager packageManager = getPackageManager();
+//
+//        //Query PackageManager to obtain list of activities/apps that match conditions of choosePictureIntent
+//        List<ResolveInfo> galleryActivities = packageManager.queryIntentActivities(
+//                choosePictureIntent, //(Intent): The intent to open camera
+//                PackageManager.MATCH_DEFAULT_ONLY //Filter the query to only intents of the DEFAULT category
+//        );
+
+
+
+        //Start the activity, expecting results to be returned (via onActivityResult(..))
+        startActivityForResult(Intent.createChooser(choosePictureIntent, "Select Picture"), REQUEST_CODE_PICTURE_GALLERY);
+
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+    Paint mBackgroundPaint;
+
+    private Shape mCurrentShape;
+
+    private List<Shape> mLines = new ArrayList<>();
+    private  List<Shape> mRectangles = new ArrayList<>();
+    private List<Shape> mOvals = new ArrayList<>();
+    private List<Shape> mCircles = new ArrayList<>();
+
+
+
+
+    private Paint mCurrentShapePaint;
+    private List<Paint> mShapePaints = new ArrayList<>();
+
+
+
+    Bitmap mBitmapDrawingPane;
+    Canvas mCanvasDrawingPane;
+
+
+
+    Paint mShapeFillPaint;
+
+
+
+
+    private void showShapeAdderDialog() {
+
+
+        //If the touch event exists for mPaintView (in case mColorIdentifier is pressed), then set it to null.
+        //If this line is omitted, then IF the touch event is set for mPaintView upon pressing mColorIdentifier, we wouldn't be able to exit it!
+        mPaintView.setOnTouchListener(null);
+
+
+
+
+        final Dialog shapeAdderDialog = new Dialog(this);
+        shapeAdderDialog.setContentView(R.layout.dialog_shape_chooser);
+        shapeAdderDialog.setTitle("Shapes to draw:");
+
+
+
+
+
+
+
+
+
+        //Check if the ArrayList of any of these shapes refere to 'null', since all Shape ArrayLists are set to 'null' when the "New Painting" button is pressed
+        if (mLines == null){
+            mLines = new ArrayList<>();
+        }
+
+        if (mRectangles == null){
+            mRectangles = new ArrayList<>();
+        }
+
+        if (mOvals == null){
+            mOvals = new ArrayList<>();
+        }
+
+        if (mCircles == null){
+            mCircles = new ArrayList<>();
+        }
+
+
+
+        mBitmapDrawingPane = Bitmap.createBitmap(mPaintView.mBitmap);
+        mCanvasDrawingPane = new Canvas(mBitmapDrawingPane);
+
+
+
+        ImageButton lineShape = (ImageButton) shapeAdderDialog.findViewById(R.id.line_shape);
+        lineShape.setBackgroundResource(android.R.drawable.btn_default);
+        lineShape.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                //TODO: MAKE METHOD FROM THIS
+                showAllColors();
+                setBackgroundButtonPressed(mShapeAdderImageButton);
+                mSizeFeedbackButton.setText("");
+                mColorFeedbackButton.setText("Draw Line");
+                mColorFeedbackButton.setTextColor(Color.WHITE);
+                mColorFeedbackButton.setBackgroundColor(Color.parseColor(mColorTag));
+                mColorFeedbackButton.setTextSize(12);
+
+                if (Color.parseColor(mColorTag) == Color.WHITE){
+                    mColorFeedbackButton.setTextColor(Color.BLACK);
+                }
+                else{
+                    mColorFeedbackButton.setTextColor(Color.WHITE);
+                }
+
+
+
+                //=================DRAW LINE=======================================================
+                mPaintView.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View view, MotionEvent motionEvent) {
+
+                        //Create a PointF object, 'current', which holds two float coordinates - x (horizontal) and y (vertical).
+                        PointF pointFCurrentShape = new PointF(motionEvent.getX(), motionEvent.getY());
+
+
+
+                        Paint currentShapePaint = new Paint(mPaintView.mPaint);
+                        currentShapePaint.setColor(Color.parseColor(mColorTag));
+
+
+                        switch (motionEvent.getAction()) {
+
+                            case (MotionEvent.ACTION_DOWN):
+
+
+                                mCurrentShape = new Shape(pointFCurrentShape, currentShapePaint);
+                                mLines.add(mCurrentShape);
+
+                                break;
+
+
+
+
+                            case (MotionEvent.ACTION_MOVE):
+
+                                if (mCurrentShape != null) {
+
+                                    mCurrentShape.setCurrentPoint(pointFCurrentShape);
+
+                                    mCanvasDrawingPane.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+
+
+
+                                    //For-each loop to iterate through on Shape object in the mRectangles List of Shape objects at a time.
+                                    //Any Shape object being currently worked on is the CURRENT Shape being added to the mRectangles List
+
+
+                                    for (Shape shape : mLines) {
+
+                                        Paint shapePaint = shape.getShapePaint();
+
+
+
+                                        mCanvasDrawingPane.drawLine(shape.getStartingPoint().x, shape.getStartingPoint().y, shape.getCurrentPoint().x, shape.getCurrentPoint().y, shapePaint);
+                                    }
+
+                                    mPaintView.invalidate();
+                                }
+
+                                break;
+
+
+                            case (MotionEvent.ACTION_UP):
+                                mPaintView.mCanvas.drawBitmap(mBitmapDrawingPane, 0, 0, null);
+                                mCurrentShape = null;
+                                break;
+                        }
+                        return true;
+                    }
+                });
+
+
+                shapeAdderDialog.dismiss();
+
+
+                Toast shapeModeToast = Toast.makeText(getApplicationContext(), "Circle mode", Toast.LENGTH_SHORT);
+                shapeModeToast.show();
+            }
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        ImageButton rectangleShape = (ImageButton) shapeAdderDialog.findViewById(R.id.rectangle_shape);
+        rectangleShape.setBackgroundResource(android.R.drawable.btn_default);
+        rectangleShape.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                //TODO: MAKE METHOD FROM THIS
+                showAllColors();
+                setBackgroundButtonPressed(mShapeAdderImageButton);
+                mSizeFeedbackButton.setText("");
+                mColorFeedbackButton.setText("Draw Rectangle");
+                mColorFeedbackButton.setTextColor(Color.WHITE);
+                mColorFeedbackButton.setBackgroundColor(Color.parseColor(mColorTag));
+                mColorFeedbackButton.setTextSize(12);
+
+                if (Color.parseColor(mColorTag) == Color.WHITE){
+                    mColorFeedbackButton.setTextColor(Color.BLACK);
+                }
+                else{
+                    mColorFeedbackButton.setTextColor(Color.WHITE);
+                }
+
+
+
+
+                //=================DRAW RECTANGLE=======================================================
+                mPaintView.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View view, MotionEvent motionEvent) {
+
+                        //Create a PointF object, 'current', which holds two float coordinates - x (horizontal) and y (vertical).
+                        PointF pointFCurrentShape = new PointF(motionEvent.getX(), motionEvent.getY());
+
+
+
+                        Paint currentShapePaint = new Paint(mPaintView.mPaint);
+                        currentShapePaint.setColor(Color.parseColor(mColorTag));
+
+
+                        switch (motionEvent.getAction()) {
+
+                            case (MotionEvent.ACTION_DOWN):
+
+
+                                mCurrentShape = new Shape(pointFCurrentShape, currentShapePaint);
+                                mRectangles.add(mCurrentShape);
+
+                                break;
+
+
+
+
+                            case (MotionEvent.ACTION_MOVE):
+
+                                if (mCurrentShape != null) {
+
+                                    mCurrentShape.setCurrentPoint(pointFCurrentShape);
+
+                                    mCanvasDrawingPane.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+
+
+
+                                    //For-each loop to iterate through on Shape object in the mRectangles List of Shape objects at a time.
+                                    //Any Shape object being currently worked on is the CURRENT Shape being added to the mRectangles List
+
+
+                                    for (Shape shape : mRectangles) {
+
+                                        Paint shapePaint = shape.getShapePaint();
+
+
+                                        float left = Math.min(shape.getStartingPoint().x, shape.getCurrentPoint().x);
+                                        float right = Math.max(shape.getStartingPoint().x, shape.getCurrentPoint().x);
+                                        float top = Math.min(shape.getStartingPoint().y, shape.getCurrentPoint().y);
+                                        float bottom = Math.max(shape.getStartingPoint().y, shape.getCurrentPoint().y);
+
+
+                                        if (Build.VERSION.SDK_INT >= 21) {
+                                            mCanvasDrawingPane.drawRoundRect(left, top, right, bottom, 8, 8, shapePaint);
+                                        } else {
+                                            mCanvasDrawingPane.drawRect(left, top, right, bottom, shapePaint);
+                                        }
+
+                                    }
+
+                                    mPaintView.invalidate();
+                                }
+
+                                break;
+
+
+                            case (MotionEvent.ACTION_UP):
+                                mPaintView.mCanvas.drawBitmap(mBitmapDrawingPane, 0, 0, null);
+                                mCurrentShape = null;
+                                break;
+                        }
+                        return true;
+                    }
+                });
+
+
+
+
+                shapeAdderDialog.dismiss();
+
+
+                Toast shapeModeToast = Toast.makeText(getApplicationContext(), "Rectangle mode", Toast.LENGTH_SHORT);
+                shapeModeToast.show();
+
+
+            }
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+        ImageButton ovalShape = (ImageButton) shapeAdderDialog.findViewById(R.id.oval_shape);
+        ovalShape.setBackgroundResource(android.R.drawable.btn_default);
+        ovalShape.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                //TODO: MAKE METHOD FROM THIS
+                showAllColors();
+                setBackgroundButtonPressed(mShapeAdderImageButton);
+                mSizeFeedbackButton.setText("");
+                mColorFeedbackButton.setText("Draw Oval");
+                mColorFeedbackButton.setTextColor(Color.WHITE);
+                mColorFeedbackButton.setBackgroundColor(Color.parseColor(mColorTag));
+                mColorFeedbackButton.setTextSize(12);
+
+                if (Color.parseColor(mColorTag) == Color.WHITE){
+                    mColorFeedbackButton.setTextColor(Color.BLACK);
+                }
+                else{
+                    mColorFeedbackButton.setTextColor(Color.WHITE);
+                }
+
+
+
+
+
+                //=================DRAW OVAL=======================================================
+                mPaintView.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View view, MotionEvent motionEvent) {
+
+                        //Create a PointF object, 'current', which holds two float coordinates - x (horizontal) and y (vertical).
+                        PointF pointFCurrentShape = new PointF(motionEvent.getX(), motionEvent.getY());
+
+
+
+                        Paint currentShapePaint = new Paint(mPaintView.mPaint);
+                        currentShapePaint.setColor(Color.parseColor(mColorTag));
+
+
+                        switch (motionEvent.getAction()) {
+
+                            case (MotionEvent.ACTION_DOWN):
+
+
+                                mCurrentShape = new Shape(pointFCurrentShape, currentShapePaint);
+                                mOvals.add(mCurrentShape);
+
+                                break;
+
+
+
+
+                            case (MotionEvent.ACTION_MOVE):
+
+                                if (mCurrentShape != null) {
+
+                                    mCurrentShape.setCurrentPoint(pointFCurrentShape);
+
+                                    mCanvasDrawingPane.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+
+
+
+                                    //For-each loop to iterate through on Shape object in the mRectangles List of Shape objects at a time.
+                                    //Any Shape object being currently worked on is the CURRENT Shape being added to the mRectangles List
+
+
+                                    for (Shape shape : mOvals) {
+
+                                        Paint shapePaint = shape.getShapePaint();
+
+
+                                        float left = Math.min(shape.getStartingPoint().x, shape.getCurrentPoint().x);
+                                        float right = Math.max(shape.getStartingPoint().x, shape.getCurrentPoint().x);
+                                        float top = Math.min(shape.getStartingPoint().y, shape.getCurrentPoint().y);
+                                        float bottom = Math.max(shape.getStartingPoint().y, shape.getCurrentPoint().y);
+
+
+                                        if (Build.VERSION.SDK_INT >= 21) {
+                                            mCanvasDrawingPane.drawOval(left, top, right, bottom, shapePaint);
+                                        }
+                                        else{
+                                            Toast unableToDrawOvalToast = Toast.makeText(getApplicationContext(), "Oval mode cannot be activated in this device", Toast.LENGTH_SHORT);
+                                            unableToDrawOvalToast.show();
+                                        }
+
+                                    }
+
+                                    mPaintView.invalidate();
+                                }
+
+                                break;
+
+
+                            case (MotionEvent.ACTION_UP):
+                                mPaintView.mCanvas.drawBitmap(mBitmapDrawingPane, 0, 0, null);
+                                mCurrentShape = null;
+                                break;
+                        }
+                        return true;
+                    }
+                });
+
+
+
+
+                shapeAdderDialog.dismiss();
+
+
+                Toast shapeModeToast = Toast.makeText(getApplicationContext(), "Oval mode", Toast.LENGTH_SHORT);
+                shapeModeToast.show();
+            }
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        ImageButton circleShape = (ImageButton) shapeAdderDialog.findViewById(R.id.circle_shape);
+        circleShape.setBackgroundResource(android.R.drawable.btn_default);
+        circleShape.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                //TODO: MAKE METHOD FROM THIS
+                showAllColors();
+                setBackgroundButtonPressed(mShapeAdderImageButton);
+                mSizeFeedbackButton.setText("");
+                mColorFeedbackButton.setText("Draw Circle");
+                mColorFeedbackButton.setTextColor(Color.WHITE);
+                mColorFeedbackButton.setBackgroundColor(Color.parseColor(mColorTag));
+                mColorFeedbackButton.setTextSize(12);
+
+                if (Color.parseColor(mColorTag) == Color.WHITE){
+                    mColorFeedbackButton.setTextColor(Color.BLACK);
+                }
+                else{
+                    mColorFeedbackButton.setTextColor(Color.WHITE);
+                }
+
+
+
+                //=================DRAW CIRCLE=======================================================
+                mPaintView.setOnTouchListener(new View.OnTouchListener() {
+                    @Override
+                    public boolean onTouch(View view, MotionEvent motionEvent) {
+
+                        //Create a PointF object, 'current', which holds two float coordinates - x (horizontal) and y (vertical).
+                        PointF pointFCurrentShape = new PointF(motionEvent.getX(), motionEvent.getY());
+
+
+
+                        Paint currentShapePaint = new Paint(mPaintView.mPaint);
+                        currentShapePaint.setColor(Color.parseColor(mColorTag));
+
+
+                        switch (motionEvent.getAction()) {
+
+                            case (MotionEvent.ACTION_DOWN):
+
+
+                                mCurrentShape = new Shape(pointFCurrentShape, currentShapePaint);
+                                mCircles.add(mCurrentShape);
+
+                                break;
+
+
+
+
+                            case (MotionEvent.ACTION_MOVE):
+
+                                if (mCurrentShape != null) {
+
+                                    mCurrentShape.setCurrentPoint(pointFCurrentShape);
+
+                                    mCanvasDrawingPane.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+
+
+
+                                    //For-each loop to iterate through on Shape object in the mRectangles List of Shape objects at a time.
+                                    //Any Shape object being currently worked on is the CURRENT Shape being added to the mRectangles List
+
+
+                                    for (Shape shape : mCircles) {
+
+                                        Paint shapePaint = shape.getShapePaint();
+
+                                        float radiusX = Math.abs(shape.getCurrentPoint().x - shape.getStartingPoint().x);
+                                        float radiusY = Math.abs(shape.getCurrentPoint().y - shape.getStartingPoint().y);
+                                        float radius = Math.max(radiusX, radiusY);
+                                        mCanvasDrawingPane.drawCircle(shape.getStartingPoint().x, shape.getStartingPoint().y, radius, shapePaint);
+
+                                    }
+
+                                    mPaintView.invalidate();
+                                }
+
+                                break;
+
+
+                            case (MotionEvent.ACTION_UP):
+                                mPaintView.mCanvas.drawBitmap(mBitmapDrawingPane, 0, 0, null);
+                                mCurrentShape = null;
+                                break;
+                        }
+                        return true;
+                    }
+                });
+
+
+
+
+                shapeAdderDialog.dismiss();
+
+
+                Toast shapeModeToast = Toast.makeText(getApplicationContext(), "Circle mode", Toast.LENGTH_SHORT);
+                shapeModeToast.show();
+            }
+        });
+
+
+
+
+
+
+
+
+        shapeAdderDialog.show();
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+    String mTextToAdd;
+    PointF mCoordinatesToAddedText;
+
+
+
+    public void selectTextAdder(){
+
+
+
+
+        //TODO: MAKE METHOD FROM THIS
+        showAllColors();
+        setBackgroundButtonPressed(mTextAdderImageButton);
+        mSizeFeedbackButton.setText("");
+        mColorFeedbackButton.setText("Add Text");
+        mColorFeedbackButton.setTextColor(Color.WHITE);
+        mColorFeedbackButton.setBackgroundColor(Color.parseColor(mColorTag));
+        mColorFeedbackButton.setTextSize(12);
+
+        if (Color.parseColor(mColorTag) == Color.WHITE){
+            mColorFeedbackButton.setTextColor(Color.BLACK);
+        }
+        else{
+            mColorFeedbackButton.setTextColor(Color.WHITE);
+        }
+
+
+
+
+
+
+        final AlertDialog.Builder textAdderDialog = new AlertDialog.Builder(MainActivity.this);
+
+        textAdderDialog.setTitle("Add Text");
+
+
+        final EditText editText = new EditText(MainActivity.this);
+        editText.setHint("Text to Add");
+
+        textAdderDialog.setView(editText);
+
+
+
+        textAdderDialog.setPositiveButton("Add Text",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+
+                        mTextToAdd = editText.getText().toString();
+
+
+                        mPaintView.invalidate();
+//
+//
+//
+//                        Toast toast = Toast.makeText(MainActivity.this, mCoordinatesToAddedText.x + "  " + mCoordinatesToAddedText.y + " " + mTextToAdd, Toast.LENGTH_SHORT);
+                        Toast toast = Toast.makeText(MainActivity.this, mTextToAdd, Toast.LENGTH_SHORT);
+                        toast.show();
+
+
+
+
+
+
+
+
+                    }
+                }
+        );
+
+        textAdderDialog.setNegativeButton("Cancel",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+
+
+                    }
+                }
+        );
+
+
+
+
+        textAdderDialog.show();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        mBitmapDrawingPane = Bitmap.createBitmap(mPaintView.mBitmap);
+        mCanvasDrawingPane = new Canvas(mBitmapDrawingPane);
+
+
+
+
+
+
+        mPaintView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+
+                switch (motionEvent.getAction()){
+
+                    case MotionEvent.ACTION_DOWN:
+
+
+
+                        mCoordinatesToAddedText = new PointF(motionEvent.getX(), motionEvent.getY());
+
+
+
+                        mPaintView.mPaint.setTextSize(50);
+                        mPaintView.mPaint.setStrokeWidth(2);
+//                        mCanvasDrawingPane.drawText("hello", mCoordinatesToAddedText.x, mCoordinatesToAddedText.y, mPaintView.mPaint);
+                        mCanvasDrawingPane.drawText(mTextToAdd, mCoordinatesToAddedText.x, mCoordinatesToAddedText.y, mPaintView.mPaint);
+
+
+
+
+
+//                        mPaintView.invalidate();
+                        mPaintView.mCanvas.drawBitmap(mBitmapDrawingPane, 0 , 0, null);
+
+                        mPaintView.invalidate();
+
+
+                        Toast toast = Toast.makeText(MainActivity.this, "\""  + mTextToAdd + "\"" + " added", Toast.LENGTH_SHORT);
+                        toast.show();
+
+
+                        break;
+
+                }
+
+                return true;
+            }
+        });
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private void drawTriangle(Canvas canvas, Paint paint, int x, int y, float width) {
+        float halfWidth = width / 2;
+
+        Path path = new Path();
+        path.moveTo(x, y - halfWidth); // Top
+        path.lineTo(x - halfWidth, y + halfWidth); // Bottom left
+        path.lineTo(x + halfWidth, y + halfWidth); // Bottom right
+        path.lineTo(x, y - halfWidth); // Back to Top
+        path.close();
+
+        canvas.drawPath(path, paint);
+    }
+
+
+
+
+
+
+
+
     private void setBackgroundButtonPressed(View view){
 
         mNewPaintingImageButton.setBackgroundResource(android.R.drawable.btn_default);
@@ -625,6 +2265,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mEraserImageButton.setBackgroundResource(android.R.drawable.btn_default);
         mSizeChooserImageButton.setBackgroundResource(android.R.drawable.btn_default);
         mSavePaintingImageButton.setBackgroundResource(android.R.drawable.btn_default);
+        mColorPickerImageButton.setBackgroundResource(android.R.drawable.btn_default);
+        mColorIdentifierImageButton.setBackgroundResource(android.R.drawable.btn_default);
+        mColorFillerImageButton.setBackgroundResource(android.R.drawable.btn_default);
+        mPictureAdderImageButton.setBackgroundResource(android.R.drawable.btn_default);
+        mShapeAdderImageButton.setBackgroundResource(android.R.drawable.btn_default);
+        mTextAdderImageButton.setBackgroundResource(android.R.drawable.btn_default);
+
 
         view.setBackgroundResource(android.R.drawable.button_onoff_indicator_off);
     }
@@ -632,7 +2279,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
-    private void showAllColorImageButtons(){
+    private void showAllColors(){
+
         mRedPaintImageButton.setVisibility(View.VISIBLE);
         mOrangePaintImageButton.setVisibility(View.VISIBLE);
         mYellowPaintImageButton.setVisibility(View.VISIBLE);
@@ -642,22 +2290,75 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mVioletPaintImageButton.setVisibility(View.VISIBLE);
         mGrayPaintImageButton.setVisibility(View.VISIBLE);
         mBlackPaintImageButton.setVisibility(View.VISIBLE);
+
+
+
+        //Check if the "custom color" has been assigned any colors. If this check is omitted, the TextView "Custom Color" will show up even when no custom colors have been assigned yet
+        if (mCustomColorAssigned == true){
+            mCustomColorsTextView.setVisibility(View.VISIBLE);
+        }
+
+
+
+
+
+        mCustomColor1.setVisibility(View.VISIBLE);
+        mCustomColor2.setVisibility(View.VISIBLE);
+        mCustomColor3.setVisibility(View.VISIBLE);
+        mCustomColor4.setVisibility(View.VISIBLE);
+        mCustomColor5.setVisibility(View.VISIBLE);
+        mCustomColor6.setVisibility(View.VISIBLE);
+
+
+
+
+
+
+
+        //Check if the "color identifier" has been assigned a color. If this check is omitted, the TextView "Identified" will show up even when no colors have been identified yet
+        if (mIsColorIdentifierAssigned == true) {
+            mIdentifiedColorTextView.setVisibility(View.VISIBLE);
+        }
+
+        mBrushIdentifiedColor.setVisibility(View.VISIBLE);
+
+
     }
 
 
 
 
 
-    private void removeAllColorImageButtons(){
-        mRedPaintImageButton.setVisibility(View.GONE);
-        mOrangePaintImageButton.setVisibility(View.GONE);
-        mYellowPaintImageButton.setVisibility(View.GONE);
-        mGreenPaintImageButton.setVisibility(View.GONE);
-        mBluePaintImageButton.setVisibility(View.GONE);
-        mIndigoPaintImageButton.setVisibility(View.GONE);
-        mVioletPaintImageButton.setVisibility(View.GONE);
-        mGrayPaintImageButton.setVisibility(View.GONE);
-        mBlackPaintImageButton.setVisibility(View.GONE);
+
+
+
+
+
+
+
+
+    private void hideAllColors(){
+        mRedPaintImageButton.setVisibility(View.INVISIBLE);
+        mOrangePaintImageButton.setVisibility(View.INVISIBLE);
+        mYellowPaintImageButton.setVisibility(View.INVISIBLE);
+        mGreenPaintImageButton.setVisibility(View.INVISIBLE);
+        mBluePaintImageButton.setVisibility(View.INVISIBLE);
+        mIndigoPaintImageButton.setVisibility(View.INVISIBLE);
+        mVioletPaintImageButton.setVisibility(View.INVISIBLE);
+        mGrayPaintImageButton.setVisibility(View.INVISIBLE);
+        mBlackPaintImageButton.setVisibility(View.INVISIBLE);
+
+        mCustomColorsTextView.setVisibility(View.INVISIBLE);
+        mCustomColor1.setVisibility(View.INVISIBLE);
+        mCustomColor2.setVisibility(View.INVISIBLE);
+        mCustomColor3.setVisibility(View.INVISIBLE);
+        mCustomColor4.setVisibility(View.INVISIBLE);
+        mCustomColor5.setVisibility(View.INVISIBLE);
+        mCustomColor6.setVisibility(View.INVISIBLE);
+
+        mIdentifiedColorTextView.setVisibility(View.INVISIBLE);
+        mBrushIdentifiedColor.setVisibility(View.INVISIBLE);
+
     }
 
 
@@ -801,6 +2502,258 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
+
+
+
+
+
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent intent){
+
+        Log.i(TAG, "onActivityResult(..) called");
+
+
+        if (resultCode != Activity.RESULT_OK){
+            return;
+        }
+
+
+        if (requestCode == REQUEST_CODE_PICTURE_GALLERY) {
+
+
+            //If the touch event exists for mPaintView (in case mColorIdentifier is pressed), then set it to null.
+            //If this line is omitted, then IF the touch event is set for mPaintView upon pressing mColorIdentifier or mColorFiller, we wouldn't be able to exit it!
+            mPaintView.setOnTouchListener(null);
+
+            //Set the paint color to transparent so that even when mPaintView is touched, nothing is drawn
+            mPaintView.mPaint.setColor(Color.TRANSPARENT);
+
+
+
+
+            //Set the bitmap version of the picture to refer to ''null'
+            Bitmap pictureBitmap = null;
+
+
+            //If the intent exists
+            if (intent != null) {
+                try {
+                    pictureBitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), intent.getData());
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+
+
+
+
+
+
+
+            //Get height of window
+//            Display display = getWindowManager().getDefaultDisplay();
+//            Point size = new Point();
+//            display.getSize(size);
+//            float width = size.x;
+//            float height = size.y;
+
+
+            //Get width and height of the custom view (mPaintView)
+            float paintViewWidth = mPaintView.getWidth();
+            float paintViewHeight = mPaintView.getHeight();
+
+            //Get width and height of the picture bitmap
+            float pictureBitmapWidth = pictureBitmap.getWidth();
+            float pictureBitmapHeight = pictureBitmap.getHeight();
+
+
+            float scale=1;
+
+
+
+            //If picture is PORTRAIT
+            if (pictureBitmapHeight >= pictureBitmapWidth) {
+
+                    scale = paintViewHeight / pictureBitmapHeight;
+
+            }
+
+            //If picture is LANDSCAPE (i.e. pictureBitmapWidth > pictureBitmapHeight)
+            else{
+                    scale = paintViewWidth / pictureBitmapWidth;
+            }
+
+
+
+
+
+
+
+
+
+            //Get resized Bitmap - based on the NEW height and width
+            pictureBitmap = getResizedBitmap(pictureBitmap, pictureBitmapHeight*scale, pictureBitmapWidth*scale);
+
+
+
+
+
+
+
+
+
+//            mPaintView.setBitmap(pictureBitmap);
+
+//            Bitmap finalBitmap = overlay(mPaintView.getBitmap(), pictureBitmap);
+//
+//
+//           mPaintView.mCanvas.drawBitmap(finalBitmap, 0, 0, mPaintView.mBitmapPaint);
+
+
+            float xTranslationToCenter = (paintViewWidth/2) - (pictureBitmap.getWidth()/2);
+            float yTranslationToCenter = (paintViewHeight/2) - (pictureBitmap.getHeight()/2);
+
+            mPaintView.mCanvas.drawBitmap(pictureBitmap, xTranslationToCenter, yTranslationToCenter, null);
+
+
+//            mPaintView.mCanvas.drawPath(mPaintView.mPath, mPaintView.mPaint);
+
+
+//            mPaintView.invalidate();
+//
+//
+//
+//            //Create canvas object, with the specified MUTABLE Bitmap to draw into (i.e. mBitmap)
+//            mPaintView.mCanvas = new Canvas(mPaintView.mBitmap);
+//
+//            //Set the Canvas color to white. Omitting this line means the canvas color would be set to BLACK (by default)
+//            mPaintView.mCanvas.drawColor(Color.WHITE);
+
+
+
+
+
+            setBackgroundButtonPressed(mPictureAdderImageButton);
+
+
+
+
+
+
+
+
+        }
+
+
+
+
+    }
+
+
+
+    public static Bitmap overlay(Bitmap bmp1, Bitmap bmp2) {
+        Bitmap bmOverlay = Bitmap.createBitmap(bmp1.getWidth(), bmp1.getHeight(), bmp1.getConfig());
+        Canvas canvas = new Canvas(bmOverlay);
+        canvas.drawBitmap(bmp1, new Matrix(), null);
+        canvas.drawBitmap(bmp2, 0, 0, null);
+        return bmOverlay;
+    }
+
+
+
+
+
+    public Bitmap getResizedBitmap(Bitmap bm, float newHeight, float newWidth) {
+
+        int width = bm.getWidth();
+
+        int height = bm.getHeight();
+
+        float scaleWidth = ((float) newWidth) / width;
+
+        float scaleHeight = ((float) newHeight) / height;
+
+
+        // CREATE A MATRIX FOR THE MANIPULATION
+        Matrix matrix = new Matrix();
+
+        // RESIZE THE BIT MAP
+        matrix.postScale(scaleWidth, scaleHeight);
+
+
+
+        // RECREATE THE NEW BITMAP
+        Bitmap resizedBitmap = Bitmap.createBitmap(bm, 0, 0, width, height, matrix, false);
+
+        return resizedBitmap;
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    @Override
+    public void onBackPressed(){
+
+        final AlertDialog.Builder backButtonConfirmationDialog = new AlertDialog.Builder(this);
+        backButtonConfirmationDialog.setTitle("Eeek!");
+        backButtonConfirmationDialog.setMessage(Html.fromHtml("<br>" + "</br>" + "Pressing Back will discard the Painting." +
+                                                                    "<br>" + "</br>" + "<br>" + "</br>" + "Do wish to proceed?"));
+        backButtonConfirmationDialog.setPositiveButton("Yes",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.dismiss();
+                        MainActivity.super.onBackPressed();
+                    }
+                }
+        );
+
+        backButtonConfirmationDialog.setNegativeButton("Cancel",
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.cancel();
+                    }
+                });
+
+        backButtonConfirmationDialog.show();
+
+        Log.i(TAG, "onBackPressed() called");
+    }
 
 
 
