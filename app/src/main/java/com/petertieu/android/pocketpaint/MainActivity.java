@@ -26,18 +26,13 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.Editable;
 import android.text.Html;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.WindowManager;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -319,6 +314,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
+
 //        EXTRA_EXTRA_SMALL_BRUSH_SIZE = (int) getResources().getDimension(R.dimen.extra_extra_small_brush_size);
 //        EXTRA_SMALL_BRUSH_SIZE    =   (int) getResources().getDimension(R.dimen.extra_small_brush_size);
 //        SMALL_BRUSH_SIZE         =   (int) getResources().getDimension(R.dimen.small_brush_size);
@@ -556,6 +552,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         //If this line is omitted, then IF the touch event is set for mPaintView upon pressing mColorIdentifier or mColorFiller, we wouldn't be able to exit it!
                         mPaintView.setOnTouchListener(null);
 
+
+                        //======= MODIFY UNDO PARAMETERS ========
+                        //Nullify the Bitmap ArrayList from mPaintView (mPaintView) so that the undo-redo history could be cleared
+                        mPaintView.mBitmapArrayList = null;
+
+                        //Set the Menu icon "undo" to the "Unabled" drawable
+                        sMenu.findItem(R.id.undo_painting).setIcon(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_menu_undo_unabled));
+
+
+
+
+
+
                         //mLines to null, so that it does not refer to any pre-existing ArrayList of Shape objects
                         mLines = null;
 
@@ -567,6 +576,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                         //mCircles to null, so that it does not refer to any pre-existing ArrayList of Shape objects
                         mCircles = null;
+
+
 
 
 
@@ -623,6 +634,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //If the touch event exists for mPaintView (in case mColorIdentifier is pressed), then set it to null.
         //If this line is omitted, then IF the touch event is set for mPaintView upon pressing mColorIdentifier or mColorFiller, we wouldn't be able to exit it!
         mPaintView.setOnTouchListener(null);
+
 
 
 
@@ -1353,21 +1365,47 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 float touchY = motionEvent.getY(); //y-axis co-ordinate
 
 
-                if (motionEvent.getAction() == MotionEvent.ACTION_MOVE) {
+                switch (motionEvent.getAction()) {
+
+
+                    case (MotionEvent.ACTION_MOVE):
+
+
+                        //GET color of co-ordinate pressed - initialColor
+                        int pixel = mPaintView.getBitmap().getPixel((int) touchX, (int) touchY);
+
+                        int redComponent = Color.red(pixel);
+                        int greenComponent = Color.green(pixel);
+                        int blueComponent = Color.blue(pixel);
+
+                        int initialColor = Color.rgb(redComponent, greenComponent, blueComponent);
+
+
+                        //GET color to FILL to
+
+                        int destinationColor = Color.parseColor(mColorTag);
+
+
+                        //GET Bitmap
+                        Bitmap bitmap = mPaintView.mBitmap;
+
+
+                        QueueLinearFloodFiller queueLinearFloodFiller = new QueueLinearFloodFiller(bitmap, initialColor, destinationColor);
+
+                        queueLinearFloodFiller.floodFill((int) touchX, (int) touchY);
+
+
+                        //Update the mPaintView View. Without this line, the mPaintView would only be updated WHEN another ImageButton is pressed
+                        mPaintView.invalidate();
+                        break;
 
 
 
 
 
 
-                    //GET color of co-ordinate pressed - initialColor
-                    int pixel = mPaintView.getBitmap().getPixel((int) touchX, (int) touchY);
 
-                    int redComponent = Color.red(pixel);
-                    int greenComponent = Color.green(pixel);
-                    int blueComponent = Color.blue(pixel);
-
-                    int initialColor = Color.rgb(redComponent, greenComponent, blueComponent);
+                    case (MotionEvent.ACTION_UP):
 
 
 
@@ -1376,30 +1414,78 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
-                    //GET color to FILL to
-
-                    int destinationColor = Color.parseColor(mColorTag);
 
 
+                        //========= SET UP UNDO FUNCTION ===============================================================================
+                        //TODO: MAKE METHOD FROM THIS
+                        //If the mBitmapArrayList is null. This occurs if a New Painting is created
+                        if (mPaintView.mBitmapArrayList == null){
+                            //Assign mBitmapArrayList to a new Bitmap ArrayList
+                            mPaintView.mBitmapArrayList = new ArrayList<>();
+                        }
 
-                    //GET Bitmap
-                    Bitmap bitmap = mPaintView.mBitmap;
 
-
-                    QueueLinearFloodFiller queueLinearFloodFiller = new QueueLinearFloodFiller(bitmap, initialColor, destinationColor);
-
-                    queueLinearFloodFiller.floodFill((int) touchX, (int) touchY);
-
-
+                        //If the current color is NOT transparent. This occurs if a New Painting is created
+                        if (mPaintView.mPaint.getColor() != Color.TRANSPARENT) {
 
 
 
-                    //Update the mPaintView View. Without this line, the mPaintView would only be updated WHEN another ImageButton is pressed
-                    mPaintView.invalidate();
+
+                            //Make a copy (clone) of the mBitmap Bitmap
+                            Bitmap cloneOfmBitmap = mPaintView.mBitmap.copy(mPaintView.mBitmap.getConfig(), true);
+
+                            //Add the cloan of mBitmap to the Bitmap ArrayList
+                            mPaintView.mBitmapArrayList.add(cloneOfmBitmap);
 
 
 
-                    return true;
+
+
+                            //If there are 1 or more Bitmap objects in the Bitmap ArrayList, set the Undo MenuItem to "enabled" state
+                            // NOTE: This menu item was initialised to "unabled" drawable
+                            if (mPaintView.mBitmapArrayList != null && mPaintView.mBitmapArrayList.size() > 0) {
+                                MainActivity.sMenu.findItem(R.id.undo_painting).setIcon(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_menu_undo_enabled));
+                            }
+
+
+                            //Log to Logcat - Get size of mBitmapArrayList
+                            Log.i("SizeOfmBitmapArrayList", Integer.toString(mPaintView.mBitmapArrayList.size()));
+                        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        break;
+
+
+
+
+
+
+
+
+
+
+
+
+                    default:
+                        return true;
                 }
 
 
@@ -1486,6 +1572,43 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1650,11 +1773,129 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 break;
 
 
+
+
+
+
                             case (MotionEvent.ACTION_UP):
+
+
+
+
+
+
+
+
+
                                 mPaintView.mCanvas.drawBitmap(mBitmapDrawingPane, 0, 0, null);
                                 mCurrentShape = null;
-                                break;
+
+
+
+
+                                //========= SET UP UNDO FUNCTION ===============================================================================
+                                //TODO: MAKE METHOD FROM THIS
+                                //If the mBitmapArrayList is null. This occurs if a New Painting is created
+                                if (mPaintView.mBitmapArrayList == null) {
+                                    //Assign mBitmapArrayList to a new Bitmap ArrayList
+                                    mPaintView.mBitmapArrayList = new ArrayList<>();
+                                }
+
+
+                                //If the current color is NOT transparent. This occurs if a New Painting is created
+                                if (mPaintView.mPaint.getColor() != Color.TRANSPARENT) {
+
+
+                                    //Make a copy (clone) of the mBitmap Bitmap
+                                    Bitmap cloneOfmBitmap = mPaintView.mBitmap.copy(mPaintView.mBitmap.getConfig(), true);
+
+                                    //Add the cloan of mBitmap to the Bitmap ArrayList
+                                    mPaintView.mBitmapArrayList.add(cloneOfmBitmap);
+
+
+                                    //If there are 1 or more Bitmap objects in the Bitmap ArrayList, set the Undo MenuItem to "enabled" state
+                                    // NOTE: This menu item was initialised to "unabled" drawable
+                                    if (mPaintView.mBitmapArrayList != null && mPaintView.mBitmapArrayList.size() > 0) {
+                                        MainActivity.sMenu.findItem(R.id.undo_painting).setIcon(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_menu_undo_enabled));
+                                    }
+
+
+                                    //Log to Logcat - Get size of mBitmapArrayList
+                                    Log.i("SizeOfmBitmapArrayList", Integer.toString(mPaintView.mBitmapArrayList.size()));
+                                }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                            break;
+
+
+
                         }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                         return true;
                     }
                 });
@@ -1773,8 +2014,72 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
                             case (MotionEvent.ACTION_UP):
+
+
+
+
+
                                 mPaintView.mCanvas.drawBitmap(mBitmapDrawingPane, 0, 0, null);
                                 mCurrentShape = null;
+
+
+                                //========= SET UP UNDO FUNCTION ===============================================================================
+                                //TODO: MAKE METHOD FROM THIS
+                                //If the mBitmapArrayList is null. This occurs if a New Painting is created
+                                if (mPaintView.mBitmapArrayList == null) {
+                                    //Assign mBitmapArrayList to a new Bitmap ArrayList
+                                    mPaintView.mBitmapArrayList = new ArrayList<>();
+                                }
+
+
+                                //If the current color is NOT transparent. This occurs if a New Painting is created
+                                if (mPaintView.mPaint.getColor() != Color.TRANSPARENT) {
+
+
+                                    //Make a copy (clone) of the mBitmap Bitmap
+                                    Bitmap cloneOfmBitmap = mPaintView.mBitmap.copy(mPaintView.mBitmap.getConfig(), true);
+
+                                    //Add the cloan of mBitmap to the Bitmap ArrayList
+                                    mPaintView.mBitmapArrayList.add(cloneOfmBitmap);
+
+
+                                    //If there are 1 or more Bitmap objects in the Bitmap ArrayList, set the Undo MenuItem to "enabled" state
+                                    // NOTE: This menu item was initialised to "unabled" drawable
+                                    if (mPaintView.mBitmapArrayList != null && mPaintView.mBitmapArrayList.size() > 0) {
+                                        MainActivity.sMenu.findItem(R.id.undo_painting).setIcon(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_menu_undo_enabled));
+                                    }
+
+
+                                    //Log to Logcat - Get size of mBitmapArrayList
+                                    Log.i("SizeOfmBitmapArrayList", Integer.toString(mPaintView.mBitmapArrayList.size()));
+                                }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                                 break;
                         }
                         return true;
@@ -1903,6 +2208,68 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             case (MotionEvent.ACTION_UP):
                                 mPaintView.mCanvas.drawBitmap(mBitmapDrawingPane, 0, 0, null);
                                 mCurrentShape = null;
+
+
+
+
+
+
+
+
+
+
+
+
+                                //========= SET UP UNDO FUNCTION ===============================================================================
+                                //TODO: MAKE METHOD FROM THIS
+                                //If the mBitmapArrayList is null. This occurs if a New Painting is created
+                                if (mPaintView.mBitmapArrayList == null) {
+                                    //Assign mBitmapArrayList to a new Bitmap ArrayList
+                                    mPaintView.mBitmapArrayList = new ArrayList<>();
+                                }
+
+
+                                //If the current color is NOT transparent. This occurs if a New Painting is created
+                                if (mPaintView.mPaint.getColor() != Color.TRANSPARENT) {
+
+
+                                    //Make a copy (clone) of the mBitmap Bitmap
+                                    Bitmap cloneOfmBitmap = mPaintView.mBitmap.copy(mPaintView.mBitmap.getConfig(), true);
+
+                                    //Add the cloan of mBitmap to the Bitmap ArrayList
+                                    mPaintView.mBitmapArrayList.add(cloneOfmBitmap);
+
+
+                                    //If there are 1 or more Bitmap objects in the Bitmap ArrayList, set the Undo MenuItem to "enabled" state
+                                    // NOTE: This menu item was initialised to "unabled" drawable
+                                    if (mPaintView.mBitmapArrayList != null && mPaintView.mBitmapArrayList.size() > 0) {
+                                        MainActivity.sMenu.findItem(R.id.undo_painting).setIcon(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_menu_undo_enabled));
+                                    }
+
+
+                                    //Log to Logcat - Get size of mBitmapArrayList
+                                    Log.i("SizeOfmBitmapArrayList", Integer.toString(mPaintView.mBitmapArrayList.size()));
+                                }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                                 break;
                         }
                         return true;
@@ -2023,6 +2390,71 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             case (MotionEvent.ACTION_UP):
                                 mPaintView.mCanvas.drawBitmap(mBitmapDrawingPane, 0, 0, null);
                                 mCurrentShape = null;
+
+
+
+
+
+
+
+
+
+
+
+
+                                //========= SET UP UNDO FUNCTION ===============================================================================
+                                //TODO: MAKE METHOD FROM THIS
+                                //If the mBitmapArrayList is null. This occurs if a New Painting is created
+                                if (mPaintView.mBitmapArrayList == null) {
+                                    //Assign mBitmapArrayList to a new Bitmap ArrayList
+                                    mPaintView.mBitmapArrayList = new ArrayList<>();
+                                }
+
+
+                                //If the current color is NOT transparent. This occurs if a New Painting is created
+                                if (mPaintView.mPaint.getColor() != Color.TRANSPARENT) {
+
+
+                                    //Make a copy (clone) of the mBitmap Bitmap
+                                    Bitmap cloneOfmBitmap = mPaintView.mBitmap.copy(mPaintView.mBitmap.getConfig(), true);
+
+                                    //Add the cloan of mBitmap to the Bitmap ArrayList
+                                    mPaintView.mBitmapArrayList.add(cloneOfmBitmap);
+
+
+                                    //If there are 1 or more Bitmap objects in the Bitmap ArrayList, set the Undo MenuItem to "enabled" state
+                                    // NOTE: This menu item was initialised to "unabled" drawable
+                                    if (mPaintView.mBitmapArrayList != null && mPaintView.mBitmapArrayList.size() > 0) {
+                                        MainActivity.sMenu.findItem(R.id.undo_painting).setIcon(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_menu_undo_enabled));
+                                    }
+
+
+                                    //Log to Logcat - Get size of mBitmapArrayList
+                                    Log.i("SizeOfmBitmapArrayList", Integer.toString(mPaintView.mBitmapArrayList.size()));
+                                }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                                 break;
                         }
                         return true;
@@ -2062,6 +2494,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
     String mTextToAdd;
     PointF mCoordinatesToAddedText;
 
@@ -2079,7 +2523,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mColorFeedbackButton.setText("Add Text");
         mColorFeedbackButton.setTextColor(Color.WHITE);
         mColorFeedbackButton.setBackgroundColor(Color.parseColor(mColorTag));
-        mColorFeedbackButton.setTextSize(12);
+        mColorFeedbackButton.setTextSize(14);
 
         if (Color.parseColor(mColorTag) == Color.WHITE){
             mColorFeedbackButton.setTextColor(Color.BLACK);
@@ -2119,13 +2563,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //
 //
 //                        Toast toast = Toast.makeText(MainActivity.this, mCoordinatesToAddedText.x + "  " + mCoordinatesToAddedText.y + " " + mTextToAdd, Toast.LENGTH_SHORT);
-                        Toast toast = Toast.makeText(MainActivity.this, mTextToAdd, Toast.LENGTH_SHORT);
+                        Toast toast = Toast.makeText(MainActivity.this, "Tap anywhere to insert: " + "\"" + mTextToAdd + "\"", Toast.LENGTH_LONG);
                         toast.show();
-
-
-
-
-
 
 
 
@@ -2184,8 +2623,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
-                        mPaintView.mPaint.setTextSize(50);
-                        mPaintView.mPaint.setStrokeWidth(2);
+                        mPaintView.mPaint.setTextSize(55);
+                        mPaintView.mPaint.setStrokeWidth(3);
+                        mPaintView.mPaint.setColor(mPaintView.mPaint.getColor());
 //                        mCanvasDrawingPane.drawText("hello", mCoordinatesToAddedText.x, mCoordinatesToAddedText.y, mPaintView.mPaint);
                         mCanvasDrawingPane.drawText(mTextToAdd, mCoordinatesToAddedText.x, mCoordinatesToAddedText.y, mPaintView.mPaint);
 
@@ -2201,6 +2641,80 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                         Toast toast = Toast.makeText(MainActivity.this, "\""  + mTextToAdd + "\"" + " added", Toast.LENGTH_SHORT);
                         toast.show();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                        //========= SET UP UNDO FUNCTION ===============================================================================
+                        //TODO: MAKE METHOD FROM THIS
+                        //If the mBitmapArrayList is null. This occurs if a New Painting is created
+                        if (mPaintView.mBitmapArrayList == null){
+                            //Assign mBitmapArrayList to a new Bitmap ArrayList
+                            mPaintView.mBitmapArrayList = new ArrayList<>();
+                        }
+
+
+                        //If the current color is NOT transparent. This occurs if a New Painting is created
+                        if (mPaintView.mPaint.getColor() != Color.TRANSPARENT) {
+
+
+
+
+                            //Make a copy (clone) of the mBitmap Bitmap
+                            Bitmap cloneOfmBitmap = mPaintView.mBitmap.copy(mPaintView.mBitmap.getConfig(), true);
+
+                            //Add the cloan of mBitmap to the Bitmap ArrayList
+                            mPaintView.mBitmapArrayList.add(cloneOfmBitmap);
+
+
+
+
+
+                            //If there are 1 or more Bitmap objects in the Bitmap ArrayList, set the Undo MenuItem to "enabled" state
+                            // NOTE: This menu item was initialised to "unabled" drawable
+                            if (mPaintView.mBitmapArrayList != null && mPaintView.mBitmapArrayList.size() > 0) {
+                                MainActivity.sMenu.findItem(R.id.undo_painting).setIcon(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_menu_undo_enabled));
+                            }
+
+
+                            //Log to Logcat - Get size of mBitmapArrayList
+                            Log.i("SizeOfmBitmapArrayList", Integer.toString(mPaintView.mBitmapArrayList.size()));
+                        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
                         break;
@@ -2371,10 +2885,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
+    //Declear static Menu reference variable. Static so that it could be accessed by PaintView
+    public static Menu sMenu;
+
 
     //Override onCreateOptionsMenu(..) activity callback method
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
+
+        sMenu = menu;
 
         //Log lifecycle callback
         Log.i(TAG, "onCreateOptionsMenu(..) called");
@@ -2389,6 +2908,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
+
+
+
     //Override onOptionsItemSelected(..) activity callback method
     @Override
     public boolean onOptionsItemSelected(MenuItem menuItem){
@@ -2396,6 +2918,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Log.i(TAG, "onOptionsItemSelected(..) called");
 
         switch (menuItem.getItemId()){
+
+            case (R.id.undo_painting):
+                undoPainting();
+                return true;
+
 
             case (R.id.share_painting):
                 sharePainting(mViewToShare);
@@ -2410,6 +2937,212 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     }
+
+
+
+
+
+
+
+
+
+
+    private void undoPainting(){
+
+
+
+
+
+        if (mPaintView.mBitmapArrayList == null){
+            return;
+        }
+
+
+
+
+        //======================= GENERIC UNDO OPERATION ==================================================================
+        //If the Bitmap ArrayList (mBitmapArrayList) has size greater than 1 (i.e. it has 1 or more Bitmap objects stored)
+        if (mPaintView.mBitmapArrayList.size() > 1) {
+
+
+            //Remove the LAST Bitmap from the Bitmap ArrayList (mBitmapArrayList)
+            mPaintView.mBitmapArrayList.remove(mPaintView.mBitmapArrayList.size() - 1);
+
+
+
+
+            Bitmap lastBitmapInmBitmapArrayList = mPaintView.mBitmapArrayList.get(mPaintView.mBitmapArrayList.size() - 1);
+            Bitmap cloneOfLastBitmapInmBitmapArrayList = lastBitmapInmBitmapArrayList.copy(lastBitmapInmBitmapArrayList.getConfig(), true);
+
+
+            //Set the Bitmap to the (now) last clone of the mBitmap in the Bitmap ArrayList
+            mPaintView.mBitmap = cloneOfLastBitmapInmBitmapArrayList;
+
+
+
+
+
+
+            //Link the mCanvas (from mPaintView) to the new Bitmap object that mBitmap (from mPaintView) now refers to
+            mPaintView.mCanvas.setBitmap(mPaintView.mBitmap);
+
+
+            mPaintView.invalidate();
+
+
+
+        }
+        else{
+            sMenu.findItem(R.id.undo_painting).setIcon(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_menu_undo_unabled));
+
+            mPaintView.mBitmapArrayList = new ArrayList<>();
+            mPaintView.startNewPainting();
+
+
+//            mUndoMenuItem.setEnabled(false);
+
+
+
+        }
+
+
+
+
+
+
+
+
+
+
+        //======================= UNDO PICTURE OPERATION ==================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        //======================= UNDO SHAPE OPERATION ==================================================================
+
+        if (mLines != null) {
+            if (mLines.size() > 1) {
+                mLines.remove(mLines.size() - 1);
+            } else {
+                mLines = new ArrayList<>();
+            }
+        }
+
+
+
+
+        if (mRectangles != null) {
+            if (mRectangles.size() > 1) {
+                mRectangles.remove(mRectangles.size() - 1);
+            } else {
+                mRectangles = new ArrayList<>();
+            }
+        }
+
+
+
+
+
+        if (mOvals != null) {
+            if (mOvals.size() > 1) {
+                mOvals.remove(mOvals.size() - 1);
+            } else {
+                mOvals = new ArrayList<>();
+            }
+        }
+
+
+
+
+
+
+        if (mCircles != null) {
+            if (mCircles.size() > 1) {
+                mCircles.remove(mCircles.size() - 1);
+            } else {
+                mCircles = new ArrayList<>();
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        //Add the cloan of mBitmap to the Bitmap ArrayList
+        Log.i("SizeOfmBitmapArrayList", Integer.toString(mPaintView.mBitmapArrayList.size()));
+
+
+
+
+
+
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2500,6 +3233,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //Return view to share as a Bitmap
         return viewToShareBitmap;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2637,6 +3383,68 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
             setBackgroundButtonPressed(mPictureAdderImageButton);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            //========= SET UP UNDO FUNCTION ===============================================================================
+            //TODO: MAKE METHOD FROM THIS
+            //If the mBitmapArrayList is null. This occurs if a New Painting is created
+            if (mPaintView.mBitmapArrayList == null){
+                //Assign mBitmapArrayList to a new Bitmap ArrayList
+                mPaintView.mBitmapArrayList = new ArrayList<>();
+            }
+
+
+//            //If the current color is NOT transparent. This occurs if a New Painting is created
+//            if (mPaintView.mPaint.getColor() != Color.TRANSPARENT) {
+
+
+
+
+                //Make a copy (clone) of the mBitmap Bitmap
+                Bitmap cloneOfmBitmap = mPaintView.mBitmap.copy(mPaintView.mBitmap.getConfig(), true);
+
+                //Add the cloan of mBitmap to the Bitmap ArrayList
+                mPaintView.mBitmapArrayList.add(cloneOfmBitmap);
+
+
+
+
+
+                //If there are 1 or more Bitmap objects in the Bitmap ArrayList, set the Undo MenuItem to "enabled" state
+                // NOTE: This menu item was initialised to "unabled" drawable
+                if (mPaintView.mBitmapArrayList != null && mPaintView.mBitmapArrayList.size() > 0) {
+                    MainActivity.sMenu.findItem(R.id.undo_painting).setIcon(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_menu_undo_enabled));
+                }
+
+
+                //Log to Logcat - Get size of mBitmapArrayList
+                Log.i("SizeOfmBitmapArrayList", Integer.toString(mPaintView.mBitmapArrayList.size()));
+//            }
+
+
+
+
+
+
+
+
+
+
 
 
 

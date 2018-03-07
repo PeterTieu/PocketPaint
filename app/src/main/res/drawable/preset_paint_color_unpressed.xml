@@ -16,7 +16,7 @@
             <!--Stroke properties-->
             <stroke
                 android:width="4dp"
-                android:color="@color/light_gray"/>
+                android:color="@color/white"/>
 
             <!--Transparent background - to accomodate the Paint Color-->
             <solid
@@ -37,7 +37,7 @@
             <!--Stroke properties-->
             <stroke
                 android:width="4dp"
-                android:color="@color/light_gray"/>
+                android:color="@color/white"/>
 
             <!--Transparent background - to accomodate the Paint Color-->
             <solid

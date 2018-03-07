@@ -151,11 +151,14 @@ public class PaintView extends View{
 
 
 
+
+
     //Override the View method, onSizeChanged(..) - called when the size of the view has changed.
     //For the app, this is called at the very beginning when the app starts - when PaintView begins
     @Override
     protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight){
         super.onSizeChanged(width, height, oldWidth, oldHeight);
+
 
         //Log method call event to Logcat
         Log.i(TAG, "onSizeChanged(..) called");
@@ -197,7 +200,7 @@ public class PaintView extends View{
 
 
     public List<Bitmap> mBitmapArrayList = new ArrayList<>();
-    public static int sUndoRedoTracker;
+
 
 
     //Override the View method onTouchEvent(..) - 'constantly' called per touch screen motion event
@@ -289,7 +292,8 @@ public class PaintView extends View{
 
 
                     //Make a copy (clone) of the mBitmap Bitmap
-                    Bitmap cloneOfmBitmap = mBitmap.copy(mBitmap.getConfig(), true);
+                     Bitmap cloneOfmBitmap = mBitmap.copy(mBitmap.getConfig(), true);
+
 
                     //Add the cloan of mBitmap to the Bitmap ArrayList
                     mBitmapArrayList.add(cloneOfmBitmap);
@@ -536,6 +540,7 @@ public class PaintView extends View{
 
     //Start a new paint by 'wiping' out the entire mutable Bitmap (mBitmap) and turning the color white
     public void startNewPainting(){
+
 
         //Fill the entire mutable bitmap (mBitmap) of the canvas (mCanvas) with the specified color and porter-duff xfermode
         mCanvas.drawColor(0, PorterDuff.Mode.CLEAR);

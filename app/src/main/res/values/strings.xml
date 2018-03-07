@@ -1,3 +1,99 @@
 <resources>
+
+
+    <!--App Name-->
     <string name="app_name">PocketPaint</string>
+
+
+    <!--Action Bar-->
+    <string name="undo_painting">Undo Painting</string>
+    <string name="redo_painting">Redo Painting</string>
+    <string name="share_painting">Share Painting</string>
+
+
+    <!--Top Tools Pallet (Action Options)-->
+    <string name="new_painting">New Painting</string>
+    <string name="brush">Brush</string>
+    <string name="eraser">Eraser</string>
+    <string name="size_chooser">Size Selector</string>
+    <string name="save_painting">Save Painting</string>
+
+
+
+    <!--Bottom Tools Pallet (Action Options)-->
+    <string name="brush_eraser_type">Type</string>
+    <string name="brush_eraser_size">Size</string>
+
+
+    <!--Paint Colors Pallet (Preset Paint Colors)-->
+    <string name="red_paint_color">Red Paint Color</string>
+    <string name="orange_paint_color">Orange Paint Color</string>
+    <string name="yellow_paint_color">Yellow Paint Color</string>
+    <string name="green_paint_color">Green Paint Color</string>
+    <string name="blue_paint_color">Blue Paint Color</string>
+    <string name="indigo_paint_color">Indigo Paint Color</string>
+    <string name="violet_paint_color">Violet Paint Color</string>
+    <string name="gray_paint_color">Gray Paint Color</string>
+    <string name="black_paint_color">Black Paint Color</string>
+
+
+    <!--Brush Sizes-->
+        <!--Dialog Text-->
+    <string name="xx_small">xx-Small</string>
+    <string name="x_small">x-Small</string>
+    <string name="small">Small</string>
+    <string name="small_medium">Small-Medium</string>
+    <string name="medium">Medium</string>
+    <string name="medium_large">Medium-Large</string>
+    <string name="large">Large</string>
+    <string name="x_large">x-Large</string>
+    <string name="xx_large">xx-Large</string>
+
+        <!--ImageButtons-->
+    <string name="extra_extra_small_brush_size">Extra Small Brush Size</string>
+    <string name="extra_small_brush_size">Extra Small Brush Size</string>
+    <string name="small_brush_size">Small Brush Size</string>
+    <string name="small_medium_brush_size">Small-Medium Brush Size</string>
+    <string name="medium_brush_size">Medium Brush Size</string>
+    <string name="medium_large_brush_size">Medium-Large Brush Size</string>
+    <string name="large_brush_size">Large Brush Size</string>
+    <string name="extra_large_brush_size">Extra Large Brush Size</string>
+    <string name="extra_extra_large_brush_size">Extra Extra Large Brush Size</string>
+
+
+
+    <!--Custom Picker-->
+    <string name="color_picker_button">Color Picker Button</string>
+    <string name="custom_colors">Custom Colors</string>
+    <string name="custom_color_1">Custom Color 1</string>
+    <string name="custom_color_2">Custom Color 2</string>
+    <string name="custom_color_3">Custom Color 3</string>
+    <string name="custom_color_4">Custom Color 4</string>
+    <string name="custom_color_5">Custom Color 5</string>
+    <string name="custom_color_6">Custom Color 6</string>
+    <string name="custom_color_7">Custom Color 7</string>
+
+
+    <!--Color Identifier-->
+    <string name="color_identifier_button">Color Identifier Button</string>
+    <string name="identified_color">Identified</string>
+
+    <!--Color Filler-->
+    <string name="color_filler">Color Filler</string>
+
+
+    <!--Line Shape-->
+    <string name="line_shape">Line Shape</string>
+    <string name="rectangle_shape">Rectangle Shape</string>
+    <string name="oval_shape">Oval Shape</string>
+    <string name="circle_shape">Circle Shape</string>
+
+    <!--Line-->
+    <string name="line">Line</string>
+    <string name="rectangle">Rectangle</string>
+    <string name="oval">Oval</string>
+    <string name="circle">Circle</string>
+
+
+
 </resources>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--Drawable for EXTRA-LARGE brush size.
-     Called in dialog_brush_size_chooser.xml-->
+     Called by dialog_size_chooser.xml -->
 <shape
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="oval"

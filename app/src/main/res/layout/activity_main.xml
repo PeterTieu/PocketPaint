@@ -4,6 +4,7 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity"
@@ -24,9 +25,10 @@
         <!--"New Painting"-->
         <ImageButton
             android:id="@+id/new_painting_image_button"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="@dimen/image_button_size"
+            android:layout_height="@dimen/image_button_size"
             android:contentDescription="@string/new_painting"
+            android:layout_marginRight="10dp"
             android:scaleType="fitCenter"
             android:adjustViewBounds="true"
             android:src="@drawable/new_painting"/>
@@ -34,9 +36,10 @@
         <!--"Brush"-->
         <ImageButton
             android:id="@+id/brush_image_button"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="@dimen/image_button_size"
+            android:layout_height="@dimen/image_button_size"
             android:contentDescription="@string/brush"
+            android:layout_marginRight="10dp"
             android:scaleType="fitCenter"
             android:adjustViewBounds="true"
             android:src="@drawable/brush" />
@@ -44,9 +47,10 @@
         <!--"Eraser"-->
         <ImageButton
             android:id="@+id/eraser_image_button"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="@dimen/image_button_size"
+            android:layout_height="@dimen/image_button_size"
             android:contentDescription="@string/eraser"
+            android:layout_marginRight="10dp"
             android:scaleType="fitCenter"
             android:adjustViewBounds="true"
             android:src="@drawable/eraser" />
@@ -54,9 +58,10 @@
         <!--"Size Selector"-->
         <ImageButton
             android:id="@+id/size_chooser_image_button"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="@dimen/image_button_size"
+            android:layout_height="@dimen/image_button_size"
             android:contentDescription="@string/size_chooser"
+            android:layout_marginRight="10dp"
             android:scaleType="fitCenter"
             android:adjustViewBounds="true"
             android:src="@drawable/caliper"/>
@@ -67,6 +72,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
+            android:layout_marginRight="10dp"
             android:layout_marginTop="-4dp">
 
             <!--Size Feedback-->
@@ -91,7 +97,11 @@
                 android:layout_marginBottom="4.8dp"
                 android:layout_marginLeft="4dp"
                 android:layout_marginRight="4dp"
-                android:paddingRight="4dp"
+                android:layout_gravity="top"
+                android:paddingTop="0dp"
+                android:paddingBottom="0dp"
+                android:paddingLeft="0dp"
+                android:paddingRight="0dp"
                 android:maxLength="20"
                 android:layout_weight="2"/>
         </LinearLayout>
@@ -100,8 +110,8 @@
         <!--"Save Painting"-->
         <ImageButton
             android:id="@+id/save_painting_image_button"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="@dimen/image_button_size"
+            android:layout_height="@dimen/image_button_size"
             android:contentDescription="@string/save_painting"
             android:scaleType="fitCenter"
             android:adjustViewBounds="true"
@@ -229,6 +239,9 @@
             android:tag="@color/black"/>
 
 
+
+
+
         <!--"Dummy Button" - does not show up on the layout.
              This Button exists so that when all the buttons from the Preset-Color Pallet are removed
              (because another button is pressed), the Painting doesnn't get removed-->
@@ -237,8 +250,7 @@
             android:layout_width="100dp"
             android:layout_height="@dimen/medium_large_brush_size"
             android:layout_margin="2dp"
-            android:background="@color/white"
-            android:onClick="presetPaintColorPressed"/>
+            android:background="@color/white"/>
 
     </LinearLayout>
 
@@ -258,10 +270,234 @@
 
 
 
-    <Button
-        android:layout_width="@dimen/medium_large_brush_size"
-        android:layout_height="@dimen/medium_large_brush_size"/>
 
 
+
+
+
+    <LinearLayout
+        android:id="@+id/custom_paint_colors_pallet"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="-20dp"
+        android:orientation="horizontal"
+        android:background="#FFFFFF">
+
+
+        <!--"Custom" TextView-->
+        <TextView
+            android:id="@+id/custom_colors"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/medium_large_brush_size"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="6dp"
+            android:text="@string/custom_colors"
+            android:textSize="14sp"/>
+
+
+        <!--Custom Color 1-->
+        <ImageButton
+            android:id="@+id/custom_color_1"
+            android:layout_width="@dimen/medium_large_brush_size"
+            android:layout_height="@dimen/medium_large_brush_size"
+            android:layout_margin="2dp"
+            android:background="@color/customColor1"
+            android:contentDescription="@string/custom_color_1"
+            android:onClick="presetPaintColorPressed"/>
+
+
+        <!--Custom Color 2-->
+        <ImageButton
+            android:id="@+id/custom_color_2"
+            android:layout_width="@dimen/medium_large_brush_size"
+            android:layout_height="@dimen/medium_large_brush_size"
+            android:layout_margin="2dp"
+            android:background="@color/customColor2"
+            android:contentDescription="@string/custom_color_2"
+            android:onClick="presetPaintColorPressed"/>
+
+
+
+        <!--Custom Color 3-->
+        <ImageButton
+            android:id="@+id/custom_color_3"
+            android:layout_width="@dimen/medium_large_brush_size"
+            android:layout_height="@dimen/medium_large_brush_size"
+            android:layout_margin="2dp"
+            android:background="@color/customColor3"
+            android:contentDescription="@string/custom_color_3"
+            android:onClick="presetPaintColorPressed"/>
+
+
+        <!--Custom Color 4-->
+        <ImageButton
+            android:id="@+id/custom_color_4"
+            android:layout_width="@dimen/medium_large_brush_size"
+            android:layout_height="@dimen/medium_large_brush_size"
+            android:layout_margin="2dp"
+            android:background="@color/customColor4"
+            android:contentDescription="@string/custom_color_4"
+            android:onClick="presetPaintColorPressed"/>
+
+
+        <!--Custom Color 5-->
+        <ImageButton
+            android:id="@+id/custom_color_5"
+            android:layout_width="@dimen/medium_large_brush_size"
+            android:layout_height="@dimen/medium_large_brush_size"
+            android:layout_margin="2dp"
+            android:background="@color/customColor5"
+            android:contentDescription="@string/custom_color_5"
+            android:onClick="presetPaintColorPressed"/>
+
+
+        <!--Custom Color 6-->
+        <ImageButton
+            android:id="@+id/custom_color_6"
+            android:layout_width="@dimen/medium_large_brush_size"
+            android:layout_height="@dimen/medium_large_brush_size"
+            android:layout_margin="2dp"
+            android:background="@color/customColor6"
+            android:contentDescription="@string/custom_color_6"
+            android:onClick="presetPaintColorPressed"/>
+
+
+
+
+
+        <!--IDENTIFIER VIEWS-->
+
+        <!--"Identified Color" TextView-->
+        <TextView
+            android:id="@+id/identified_color_text"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/medium_large_brush_size"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="6dp"
+            android:text="@string/identified_color"
+            android:textSize="14sp"/>
+
+        <!--Identified coloor-->
+        <ImageButton
+            android:id="@+id/identified_color"
+            android:layout_width="@dimen/medium_large_brush_size"
+            android:layout_height="@dimen/medium_large_brush_size"
+            android:layout_margin="2dp"
+            android:background="@color/customColor1"
+            android:contentDescription="@string/custom_color_1"
+            android:onClick="presetPaintColorPressed"/>
+
+
+
+
+
+
+    </LinearLayout>
+
+
+
+
+
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+
+
+        <!--COLOR PICKER BUTTON-->
+        <ImageButton
+            android:id="@+id/color_picker"
+            android:layout_width="@dimen/image_button_size"
+            android:layout_height="@dimen/image_button_size"
+            android:layout_marginRight="10dp"
+            android:contentDescription="@string/color_picker_button"
+            android:src="@drawable/color_wheel"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:tag="@color/currentColorPicked"/>
+
+
+        <!--COLOR IDENTIFIER BUTTON-->
+        <ImageButton
+            android:id="@+id/color_identifier"
+            android:layout_width="@dimen/image_button_size"
+            android:layout_height="@dimen/image_button_size"
+            android:layout_marginRight="10dp"
+            android:contentDescription="@string/color_identifier_button"
+            android:src="@drawable/color_identifier"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:tag="@color/currentColorPicked"/>
+
+
+        <!--COLOR FILLER BUTTON-->
+        <ImageButton
+            android:id="@+id/color_filler"
+            android:layout_width="@dimen/image_button_size"
+            android:layout_height="@dimen/image_button_size"
+            android:layout_marginRight="10dp"
+            android:contentDescription="@string/color_filler"
+            android:src="@drawable/color_filler"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:tag="@color/currentColorPicked"/>
+
+
+
+        <!--PICTURE ADDER BUTTON-->
+        <ImageButton
+            android:id="@+id/picture_adder"
+            android:layout_width="@dimen/image_button_size"
+            android:layout_height="@dimen/image_button_size"
+            android:layout_marginRight="10dp"
+            android:contentDescription="@string/color_filler"
+            android:src="@drawable/picture_adder"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:tag="@color/currentColorPicked"/>
+
+
+        <!--SHAPE ADDER BUTTON-->
+        <ImageButton
+            android:id="@+id/shape_adder"
+            android:layout_width="@dimen/image_button_size"
+            android:layout_height="@dimen/image_button_size"
+            android:layout_marginRight="10dp"
+            android:contentDescription="@string/color_filler"
+            android:src="@drawable/shape_adder"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:tag="@color/currentColorPicked"/>
+
+
+
+        <!--TEXT ADDER BUTTON-->
+        <ImageButton
+            android:id="@+id/text_adder"
+            android:layout_width="@dimen/image_button_size"
+            android:layout_height="@dimen/image_button_size"
+            android:contentDescription="@string/color_filler"
+            android:src="@drawable/text_adder"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:tag="@color/currentColorPicked"/>
+
+
+
+
+
+    </LinearLayout>
+
+
+
+
+
+
+
+
+    
 
 </LinearLayout>
