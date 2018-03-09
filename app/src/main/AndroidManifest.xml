@@ -4,6 +4,7 @@
           package="com.petertieu.android.pocketpaint">
 
 
+    <!--Specify permission used-->
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
 
@@ -15,10 +16,9 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-
+        <!--Declare MainActivity-->
         <activity
             android:name=".MainActivity"
-
             android:screenOrientation="portrait">
 
             <intent-filter>
@@ -27,7 +27,6 @@
             </intent-filter>
 
         </activity>
-
 
     </application>
 
