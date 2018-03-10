@@ -1,30 +1,33 @@
 package com.petertieu.android.pocketpaint;
 
-/**
- * Created by Peter Tieu on 2/03/2018.
- */
-
 import android.graphics.Paint;
 import android.graphics.PointF;
 
-//Shape is called by the method: selectShapeAdder() of MainActivity - to contain information of each shape template.
-//Shape keeps track of two points of a single Shape when it is drawn, as well as the current Paint color.
-    //Starting point: Initial co-ordinates from where the Shape was created
-    //Current point: Current co-ordinates of the Shape
-public class Shape {
 
-    //Declare instance variables
+//Shape is called by the method: selectShapeAdder() of MainActivity to add shapes to the Painting (i.e. Line, Rectangle, Oval, Circle).
+//Shape keeps track of:
+    //1: Paint properties (i.e. color and stroke size)
+    //2: Co-ordinates of a single Shape when it is drawn
+        //a: Starting point: Initial co-ordinates from where the Shape was created
+        //b: Current point: Current co-ordinates of the Shape
 
-    //INITIAL x and y co-ordinates (of type float)
+public class Shape{
+
+    //========= Declare instance variables =================================
+
+    //Shape's Paint (includes these properties: color and stroke size)
+    private Paint mShapePaint;
+
+    //STARTING x and y co-ordinates (of type float)
     private PointF mStartingPoint;
 
     //CURRENT x and y co-ordinates (of type float)
     private PointF mCurrentPoint;
 
-    //Shape's Paint (includes these properties: color and stroke size)
-    private Paint mShapePaint;
 
 
+
+    //========= Define methods =================================
 
     //Build constructor
     public Shape(PointF origin, Paint paint){
@@ -34,21 +37,30 @@ public class Shape {
     }
 
 
-    //Get the current point
+
+
+    //Get the STARTING point
+    public PointF getStartingPoint(){
+        return mStartingPoint;
+    }
+
+
+
+
+    //Get the CURRENT point
     public PointF getCurrentPoint(){
         return mCurrentPoint;
     }
 
-    //Set the current point
+
+
+
+    //Set the CURRENT point
     public void setCurrentPoint(PointF current){
         mCurrentPoint = current;
     }
 
 
-    //Get the origin point
-    public PointF getStartingPoint(){
-        return mStartingPoint;
-    }
 
 
     //Set the current shape
