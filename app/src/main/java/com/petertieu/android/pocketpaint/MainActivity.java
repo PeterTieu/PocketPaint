@@ -16,7 +16,6 @@ import android.graphics.PointF;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
@@ -39,20 +38,17 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
 import yuku.ambilwarna.AmbilWarnaDialog;
 
 
-//Main interface of the app
+//Class that sets the main interface of the app
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
-
 
 
     //============= Declare/define instance variables ===========================
@@ -60,54 +56,61 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //Tag for LogCat
     private final static String TAG = "MainActivity";
 
-    //PaintView for which the paint action takes place
+    //PaintView (custom view) for which the paint action takes place
     private PaintView mPaintView;
 
+    //Initialise the first Paint color to BLUE
+    private String mColorTag = "#0000FF";
 
+
+    //-------- FEEDBACK -------
+    private Button mSizeFeedbackButton, mColorFeedbackButton;
+
+
+    //-------- TOP PALLET and BOTTOM PALLET -------
+    //Action Buttons
+    private ImageButton mNewPaintingImageButton, mBrushImageButton, mEraserImageButton, mSizeChooserImageButton, mSavePaintingImageButton, mColorFillerImageButton;
+
+
+
+    //---- PRESET COLORS (Below TOP PALLET) ---------------------
+    //Layout for Preset Colors
     LinearLayout mPresetPaintColors;
 
-
-    //Preset color ImageButtons
+    //Preset Colors
     private ImageButton mRedPaintImageButton, mOrangePaintImageButton, mYellowPaintImageButton, mGreenPaintImageButton, mBluePaintImageButton,
-                        mIndigoPaintImageButton, mVioletPaintImageButton, mGrayPaintImageButton, mBlackPaintImageButton, mColorPickerImageButton,
-                        mColorIdentifierImageButton, mPictureAdderImageButton, mShapeAdderImageButton, mTextAdderImageButton;
+            mIndigoPaintImageButton, mVioletPaintImageButton, mGrayPaintImageButton, mBlackPaintImageButton, mColorPickerImageButton,
+            mColorIdentifierImageButton, mPictureAdderImageButton, mShapeAdderImageButton, mTextAdderImageButton;
 
 
 
-    //Custom colors
+
+    //-------- CUSTOM COLORS (Above BOTTOM PALLET) -------
+    //Total number of custom colors
     private final int MAX_NUMBER_OF_CUSTOM_COLORS = 6;
 
-    private TextView mCustomColorsTextView, mIdentifiedColorTextView;
+    //Title for Custom Colors
+    private TextView mCustomColorsTextView;
 
-    //Custom color ImageButtons
-    private ImageButton mCustomColor1, mCustomColor2, mCustomColor3, mCustomColor4, mCustomColor5, mCustomColor6;
+    //Custom Colors
+    private ImageButton mCustomColor1, mCustomColor2, mCustomColor3, mCustomColor4, mCustomColor5, mCustomColor6; //Custom color ImageButtons
 
-    //Identified color ImageButton
+
+
+
+    //-------- IDENTIFIED COLORS (Above BOTTOM PALLET)-------
+    //Title for Identified Colors
+    private TextView mIdentifiedColorTextView;
+
+    //Identified Color
     private ImageButton mBrushIdentifiedColor;
 
-
-
+    //
     private ImageButton mColorImageButtonPressed;
 
     //ImageButton for the current color
     private ImageButton mInitialPaintColorPressed;
 
-    //Define mColorTag.
-    //mColorTag is the
-    private String mColorTag = "#0000FF";
-
-    //ImageButtons (i.e. ACTION OPTIONS) in the top pallet
-    private ImageButton mNewPaintingImageButton, mBrushImageButton, mEraserImageButton, mSizeChooserImageButton, mSavePaintingImageButton, mColorFillerImageButton;
-
-
-
-
-
-    private Button mSizeFeedbackButton, mColorFeedbackButton;
-
-    //Brush sizes: EXTRA SMALL, SMALL, SMALL-MEDIUM, MEDIUM, MEDIUM-LARGE, LARGE, EXTRA-LARGE brush sizes
-    private float   mExtraExtraSmallBrushSize, mExtraSmallBrushSize, mSmallBrushSize, mSmallMediumBrushSize, mMediumBrushSize,
-                    mMediumLargeBrushSize, mLargeBrushSize, mExtraLargeBrushSize, mExtraExtraLargeBrushSize;
 
 
     private static final String[] STORAGE_PERMISSIONS = new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
@@ -118,6 +121,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     PaintView mViewToShare;
 
+
+
+
+    //============= Declare/define methods ===========================
 
     //Override onCreate(..) activity lifecycle callback method
     @Override
@@ -452,7 +459,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
-        mPaintView.setCurrentPaintColor(mColorTag);
+        mPaintView.setPaintColor(mColorTag);
 
         //Update mColorFeedbackButton
         mColorFeedbackButton.setBackgroundColor(Color.parseColor(mColorTag));
@@ -482,7 +489,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mPaintView.setEraser(false);
 
-        mPaintView.setCurrentSize(mPaintView.getPreviousSize());
+        mPaintView.setCurrentSize(mPaintView.getCurrentSize());
 
         mSizeFeedbackButton.setText(mPaintView.getCurrentSizeString());
 
@@ -548,6 +555,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
 
+
+
+
+
+
                         //If the touch event exists for mPaintView (in case mColorIdentifier is pressed), then set it to null.
                         //If this line is omitted, then IF the touch event is set for mPaintView upon pressing mColorIdentifier or mColorFiller, we wouldn't be able to exit it!
                         mPaintView.setOnTouchListener(null);
@@ -556,6 +568,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         //======= MODIFY UNDO PARAMETERS ========
                         //Nullify the Bitmap ArrayList from mPaintView (mPaintView) so that the undo-redo history could be cleared
                         mPaintView.mBitmapArrayList = null;
+
+
+
 
                         //Set the Menu icon "undo" to the "Unabled" drawable
                         sMenu.findItem(R.id.undo_painting).setIcon(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_menu_undo_unabled));
@@ -584,6 +599,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         hideAllColors();
                         setBackgroundButtonPressed(mNewPaintingImageButton);
                         mPaintView.startNewPainting();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
                         //"Disable" the Paint color (so that when mPaintView is touched, nothing happens)
@@ -756,7 +793,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onClick(View view) {
 //                mPresetPaintColors.setVisibility(View.GONE);
                 mPaintView.setCurrentSize(mPaintView.mExtraExtraSmallBrushSize);
-                mPaintView.setPreviousSize(mPaintView.mExtraExtraSmallBrushSize);
+//                mPaintView.setPreviousSize(mPaintView.mExtraExtraSmallBrushSize);
                 mSizeFeedbackButton.setText(mPaintView.getCurrentSizeString());
                 sizeSelectorChooserDialog.dismiss();
                 Toast sizeToast = Toast.makeText(getApplicationContext(), mPaintView.getCurrentSizeString(), Toast.LENGTH_SHORT);
@@ -771,7 +808,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onClick(View view) {
 //                mPresetPaintColors.setVisibility(View.GONE);
                 mPaintView.setCurrentSize(mPaintView.mExtraSmallBrushSize);
-                mPaintView.setPreviousSize(mPaintView.mExtraSmallBrushSize);
+//                mPaintView.setPreviousSize(mPaintView.mExtraSmallBrushSize);
                 mSizeFeedbackButton.setText(mPaintView.getCurrentSizeString());
                 sizeSelectorChooserDialog.dismiss();
                 Toast sizeToast = Toast.makeText(getApplicationContext(), mPaintView.getCurrentSizeString(), Toast.LENGTH_SHORT);
@@ -786,7 +823,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onClick(View view) {
 //                mPresetPaintColors.setVisibility(View.GONE);
                 mPaintView.setCurrentSize(mPaintView.mSmallBrushSize);
-                mPaintView.setPreviousSize(mPaintView.mSmallBrushSize);
+//                mPaintView.setPreviousSize(mPaintView.mSmallBrushSize);
                 mSizeFeedbackButton.setText(mPaintView.getCurrentSizeString());
                 sizeSelectorChooserDialog.dismiss();
                 Toast sizeToast = Toast.makeText(getApplicationContext(), mPaintView.getCurrentSizeString(), Toast.LENGTH_SHORT);
@@ -802,7 +839,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onClick(View view) {
 //                mPresetPaintColors.setVisibility(View.GONE);
                 mPaintView.setCurrentSize(mPaintView.mSmallMediumBrushSize);
-                mPaintView.setPreviousSize(mPaintView.mSmallMediumBrushSize);
+//                mPaintView.setPreviousSize(mPaintView.mSmallMediumBrushSize);
                 mSizeFeedbackButton.setText(mPaintView.getCurrentSizeString());
                 sizeSelectorChooserDialog.dismiss();
                 Toast sizeToast = Toast.makeText(getApplicationContext(),  mPaintView.getCurrentSizeString(), Toast.LENGTH_SHORT);
@@ -818,7 +855,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onClick(View view) {
 //                mPresetPaintColors.setVisibility(View.GONE);
                 mPaintView.setCurrentSize(mPaintView.mMediumBrushSize);
-                mPaintView.setPreviousSize(mPaintView.mMediumBrushSize);
+//                mPaintView.setPreviousSize(mPaintView.mMediumBrushSize);
                 mSizeFeedbackButton.setText(mPaintView.getCurrentSizeString());
                 sizeSelectorChooserDialog.dismiss();
                 Toast sizeToast = Toast.makeText(getApplicationContext(), mPaintView.getCurrentSizeString(), Toast.LENGTH_SHORT);
@@ -834,7 +871,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onClick(View view) {
 //                mPresetPaintColors.setVisibility(View.GONE);
                 mPaintView.setCurrentSize(mPaintView.mMediumLargeBrushSize);
-                mPaintView.setPreviousSize(mPaintView.mMediumLargeBrushSize);
+//                mPaintView.setPreviousSize(mPaintView.mMediumLargeBrushSize);
                 mSizeFeedbackButton.setText(mPaintView.getCurrentSizeString());
                 sizeSelectorChooserDialog.dismiss();
                 Toast sizeToast = Toast.makeText(getApplicationContext(), mPaintView.getCurrentSizeString(), Toast.LENGTH_SHORT);
@@ -850,7 +887,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onClick(View view) {
 //                mPresetPaintColors.setVisibility(View.GONE);
                 mPaintView.setCurrentSize(mPaintView.mLargeBrushSize);
-                mPaintView.setPreviousSize(mPaintView.mLargeBrushSize);
+//                mPaintView.setPreviousSize(mPaintView.mLargeBrushSize);
                 mSizeFeedbackButton.setText(mPaintView.getCurrentSizeString());
                 sizeSelectorChooserDialog.dismiss();
                 Toast sizeToast = Toast.makeText(getApplicationContext(), mPaintView.getCurrentSizeString(), Toast.LENGTH_SHORT);
@@ -865,7 +902,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onClick(View view) {
 //                mPresetPaintColors.setVisibility(View.GONE);
                 mPaintView.setCurrentSize(mPaintView.mExtraLargeBrushSize);
-                mPaintView.setPreviousSize(mPaintView.mExtraLargeBrushSize);
+//                mPaintView.setPreviousSize(mPaintView.mExtraLargeBrushSize);
                 mSizeFeedbackButton.setText(mPaintView.getCurrentSizeString());
                 sizeSelectorChooserDialog.dismiss();
                 Toast sizeToast = Toast.makeText(getApplicationContext(), mPaintView.getCurrentSizeString(), Toast.LENGTH_SHORT);
@@ -880,7 +917,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onClick(View view) {
 //                mPresetPaintColors.setVisibility(View.GONE);
                 mPaintView.setCurrentSize(mPaintView.mExtraExtraLargeBrushSize);
-                mPaintView.setPreviousSize(mPaintView.mExtraExtraLargeBrushSize);
+//                mPaintView.setPreviousSize(mPaintView.mExtraExtraLargeBrushSize);
                 mSizeFeedbackButton.setText( mPaintView.getCurrentSizeString());
                 sizeSelectorChooserDialog.dismiss();
                 Toast sizeToast = Toast.makeText(getApplicationContext(), mPaintView.getCurrentSizeString(), Toast.LENGTH_SHORT);
@@ -1040,7 +1077,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
-        AmbilWarnaDialog dialog = new AmbilWarnaDialog(MainActivity.this, mPaintView.getCurrentPaintColor(), false, new AmbilWarnaDialog.OnAmbilWarnaListener() {
+        AmbilWarnaDialog dialog = new AmbilWarnaDialog(MainActivity.this, mPaintView.getPaintColor(), false, new AmbilWarnaDialog.OnAmbilWarnaListener() {
 
             @Override
             public void onOk(AmbilWarnaDialog dialog, int color) {
@@ -1052,11 +1089,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
                 //'color' is the color picked. It is in RGB format (e.g. black color is -16777216, as there are 16,777,216 RGB colors, and black is the last one)
-                //We need to turn 'color' to a hexadecimal format (e.g. #000000, #FF0000, etc.) so that we could feed it to mPaintView.setCurrentPaintColor()
+                //We need to turn 'color' to a hexadecimal format (e.g. #000000, #FF0000, etc.) so that we could feed it to mPaintView.setPaintColor()
                 String colorInHexString = "#" + Integer.toHexString(color);
 
                 //Set the current color
-                mPaintView.setCurrentPaintColor(colorInHexString);
+                mPaintView.setPaintColor(colorInHexString);
 
 
                 mSizeFeedbackButton.setText(mPaintView.getCurrentSizeString());
@@ -1259,7 +1296,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
-                    mPaintView.setCurrentPaintColor(identifiedColorString);
+                    mPaintView.setPaintColor(identifiedColorString);
 
 
                     mBrushIdentifiedColor.setBackgroundColor(Color.parseColor(identifiedColorString));
@@ -1767,7 +1804,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                         mCanvasDrawingPane.drawLine(shape.getStartingPoint().x, shape.getStartingPoint().y, shape.getCurrentPoint().x, shape.getCurrentPoint().y, shapePaint);
                                     }
 
-                                    mPaintView.invalidate();
+//                                    mPaintView.invalidate();
                                 }
 
                                 break;
@@ -1802,78 +1839,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 }
 
 
-                                //If the current color is NOT transparent. This occurs if a New Painting is created
-                                if (mPaintView.mPaint.getColor() != Color.TRANSPARENT) {
+                                //Make a copy (clone) of the mBitmap Bitmap
+                                Bitmap cloneOfmBitmap = mPaintView.mBitmap.copy(mPaintView.mBitmap.getConfig(), true);
+
+                                //Add the cloan of mBitmap to the Bitmap ArrayList
+                                mPaintView.mBitmapArrayList.add(cloneOfmBitmap);
 
 
-                                    //Make a copy (clone) of the mBitmap Bitmap
-                                    Bitmap cloneOfmBitmap = mPaintView.mBitmap.copy(mPaintView.mBitmap.getConfig(), true);
-
-                                    //Add the cloan of mBitmap to the Bitmap ArrayList
-                                    mPaintView.mBitmapArrayList.add(cloneOfmBitmap);
-
-
-                                    //If there are 1 or more Bitmap objects in the Bitmap ArrayList, set the Undo MenuItem to "enabled" state
-                                    // NOTE: This menu item was initialised to "unabled" drawable
-                                    if (mPaintView.mBitmapArrayList != null && mPaintView.mBitmapArrayList.size() > 0) {
-                                        MainActivity.sMenu.findItem(R.id.undo_painting).setIcon(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_menu_undo_enabled));
-                                    }
-
-
-                                    //Log to Logcat - Get size of mBitmapArrayList
-                                    Log.i("SizeOfmBitmapArrayList", Integer.toString(mPaintView.mBitmapArrayList.size()));
+                                //If there are 1 or more Bitmap objects in the Bitmap ArrayList, set the Undo MenuItem to "enabled" state
+                                // NOTE: This menu item was initialised to "unabled" drawable
+                                if (mPaintView.mBitmapArrayList != null && mPaintView.mBitmapArrayList.size() > 0) {
+                                    MainActivity.sMenu.findItem(R.id.undo_painting).setIcon(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_menu_undo_enabled));
                                 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                                //Log to Logcat - Get size of mBitmapArrayList
+                                Log.i("SizeOfmBitmapArrayList", Integer.toString(mPaintView.mBitmapArrayList.size()));
 
 
 
@@ -1896,9 +1877,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
+
+
+
                         return true;
                     }
                 });
+
+
+
+
+
+
+
+//                mPaintView.invalidate();
+
 
 
                 shapeAdderDialog.dismiss();
@@ -2032,27 +2025,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 }
 
 
-                                //If the current color is NOT transparent. This occurs if a New Painting is created
-                                if (mPaintView.mPaint.getColor() != Color.TRANSPARENT) {
+                                //Make a copy (clone) of the mBitmap Bitmap
+                                Bitmap cloneOfmBitmap = mPaintView.mBitmap.copy(mPaintView.mBitmap.getConfig(), true);
+
+                                //Add the cloan of mBitmap to the Bitmap ArrayList
+                                mPaintView.mBitmapArrayList.add(cloneOfmBitmap);
 
 
-                                    //Make a copy (clone) of the mBitmap Bitmap
-                                    Bitmap cloneOfmBitmap = mPaintView.mBitmap.copy(mPaintView.mBitmap.getConfig(), true);
-
-                                    //Add the cloan of mBitmap to the Bitmap ArrayList
-                                    mPaintView.mBitmapArrayList.add(cloneOfmBitmap);
-
-
-                                    //If there are 1 or more Bitmap objects in the Bitmap ArrayList, set the Undo MenuItem to "enabled" state
-                                    // NOTE: This menu item was initialised to "unabled" drawable
-                                    if (mPaintView.mBitmapArrayList != null && mPaintView.mBitmapArrayList.size() > 0) {
-                                        MainActivity.sMenu.findItem(R.id.undo_painting).setIcon(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_menu_undo_enabled));
-                                    }
-
-
-                                    //Log to Logcat - Get size of mBitmapArrayList
-                                    Log.i("SizeOfmBitmapArrayList", Integer.toString(mPaintView.mBitmapArrayList.size()));
+                                //If there are 1 or more Bitmap objects in the Bitmap ArrayList, set the Undo MenuItem to "enabled" state
+                                // NOTE: This menu item was initialised to "unabled" drawable
+                                if (mPaintView.mBitmapArrayList != null && mPaintView.mBitmapArrayList.size() > 0) {
+                                    MainActivity.sMenu.findItem(R.id.undo_painting).setIcon(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_menu_undo_enabled));
                                 }
+
+
+                                //Log to Logcat - Get size of mBitmapArrayList
+                                Log.i("SizeOfmBitmapArrayList", Integer.toString(mPaintView.mBitmapArrayList.size()));
+
 
 
 
@@ -2229,27 +2218,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 }
 
 
-                                //If the current color is NOT transparent. This occurs if a New Painting is created
-                                if (mPaintView.mPaint.getColor() != Color.TRANSPARENT) {
+                                //Make a copy (clone) of the mBitmap Bitmap
+                                Bitmap cloneOfmBitmap = mPaintView.mBitmap.copy(mPaintView.mBitmap.getConfig(), true);
+
+                                //Add the cloan of mBitmap to the Bitmap ArrayList
+                                mPaintView.mBitmapArrayList.add(cloneOfmBitmap);
 
 
-                                    //Make a copy (clone) of the mBitmap Bitmap
-                                    Bitmap cloneOfmBitmap = mPaintView.mBitmap.copy(mPaintView.mBitmap.getConfig(), true);
-
-                                    //Add the cloan of mBitmap to the Bitmap ArrayList
-                                    mPaintView.mBitmapArrayList.add(cloneOfmBitmap);
-
-
-                                    //If there are 1 or more Bitmap objects in the Bitmap ArrayList, set the Undo MenuItem to "enabled" state
-                                    // NOTE: This menu item was initialised to "unabled" drawable
-                                    if (mPaintView.mBitmapArrayList != null && mPaintView.mBitmapArrayList.size() > 0) {
-                                        MainActivity.sMenu.findItem(R.id.undo_painting).setIcon(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_menu_undo_enabled));
-                                    }
-
-
-                                    //Log to Logcat - Get size of mBitmapArrayList
-                                    Log.i("SizeOfmBitmapArrayList", Integer.toString(mPaintView.mBitmapArrayList.size()));
+                                //If there are 1 or more Bitmap objects in the Bitmap ArrayList, set the Undo MenuItem to "enabled" state
+                                // NOTE: This menu item was initialised to "unabled" drawable
+                                if (mPaintView.mBitmapArrayList != null && mPaintView.mBitmapArrayList.size() > 0) {
+                                    MainActivity.sMenu.findItem(R.id.undo_painting).setIcon(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_menu_undo_enabled));
                                 }
+
+
+                                //Log to Logcat - Get size of mBitmapArrayList
+                                Log.i("SizeOfmBitmapArrayList", Integer.toString(mPaintView.mBitmapArrayList.size()));
+
 
 
 
@@ -2411,27 +2396,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 }
 
 
-                                //If the current color is NOT transparent. This occurs if a New Painting is created
-                                if (mPaintView.mPaint.getColor() != Color.TRANSPARENT) {
+                                //Make a copy (clone) of the mBitmap Bitmap
+                                Bitmap cloneOfmBitmap = mPaintView.mBitmap.copy(mPaintView.mBitmap.getConfig(), true);
+
+                                //Add the cloan of mBitmap to the Bitmap ArrayList
+                                mPaintView.mBitmapArrayList.add(cloneOfmBitmap);
 
 
-                                    //Make a copy (clone) of the mBitmap Bitmap
-                                    Bitmap cloneOfmBitmap = mPaintView.mBitmap.copy(mPaintView.mBitmap.getConfig(), true);
-
-                                    //Add the cloan of mBitmap to the Bitmap ArrayList
-                                    mPaintView.mBitmapArrayList.add(cloneOfmBitmap);
-
-
-                                    //If there are 1 or more Bitmap objects in the Bitmap ArrayList, set the Undo MenuItem to "enabled" state
-                                    // NOTE: This menu item was initialised to "unabled" drawable
-                                    if (mPaintView.mBitmapArrayList != null && mPaintView.mBitmapArrayList.size() > 0) {
-                                        MainActivity.sMenu.findItem(R.id.undo_painting).setIcon(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_menu_undo_enabled));
-                                    }
-
-
-                                    //Log to Logcat - Get size of mBitmapArrayList
-                                    Log.i("SizeOfmBitmapArrayList", Integer.toString(mPaintView.mBitmapArrayList.size()));
+                                //If there are 1 or more Bitmap objects in the Bitmap ArrayList, set the Undo MenuItem to "enabled" state
+                                // NOTE: This menu item was initialised to "unabled" drawable
+                                if (mPaintView.mBitmapArrayList != null && mPaintView.mBitmapArrayList.size() > 0) {
+                                    MainActivity.sMenu.findItem(R.id.undo_painting).setIcon(ContextCompat.getDrawable(MainActivity.this, R.drawable.ic_menu_undo_enabled));
                                 }
+
+
+                                //Log to Logcat - Get size of mBitmapArrayList
+                                Log.i("SizeOfmBitmapArrayList", Integer.toString(mPaintView.mBitmapArrayList.size()));
+
 
 
 
@@ -2533,6 +2514,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
 
+        mPaintView.mPaint.setColor(Color.parseColor(mColorTag));
+
+
 
 
 
@@ -2549,6 +2533,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
+
         textAdderDialog.setPositiveButton("Add Text",
                 new DialogInterface.OnClickListener() {
                     @Override
@@ -2558,12 +2543,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         mTextToAdd = editText.getText().toString();
 
 
-                        mPaintView.invalidate();
-//
-//
-//
-//                        Toast toast = Toast.makeText(MainActivity.this, mCoordinatesToAddedText.x + "  " + mCoordinatesToAddedText.y + " " + mTextToAdd, Toast.LENGTH_SHORT);
-                        Toast toast = Toast.makeText(MainActivity.this, "Tap anywhere to insert: " + "\"" + mTextToAdd + "\"", Toast.LENGTH_LONG);
+
+
+
+//                        mPaintView.invalidate();
+
+
+                        Toast toast = Toast.makeText(MainActivity.this, "Tap anywhere to print: " + "\"" + mTextToAdd + "\"", Toast.LENGTH_LONG);
                         toast.show();
 
 
@@ -2919,9 +2905,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         switch (menuItem.getItemId()){
 
+
             case (R.id.undo_painting):
                 undoPainting();
                 return true;
+
+
 
 
             case (R.id.share_painting):
@@ -3113,6 +3102,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     }
+
+
+
+
+
+
+
+
+
 
 
 
