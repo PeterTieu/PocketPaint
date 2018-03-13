@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--Layout for the Action Bar-->
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!--Undo Painting-->
+    <item
+        android:id="@+id/undo_painting"
+        android:icon="@drawable/ic_menu_undo_unabled"
+        android:title="@string/undo_painting"
+        android:contentDescription="@string/undo_painting"
+        app:showAsAction="ifRoom|withText"/>
+
+    <!--Share Painting-->
+    <item
+        android:id="@+id/share_painting"
+        android:icon="@drawable/ic_menu_share"
+        android:title="@string/share_painting"
+        android:contentDescription="@string/share_painting"
+        app:showAsAction="ifRoom|withText"/>
+
+</menu>
