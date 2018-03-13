@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<!--Layout for SHAPE CHOOSER Dialog - i.e. dialog to choose the Shape to add-->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="horizontal">
+
+
+
+    <!--LINE-->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!--Text: "Line"-->
+        <TextView
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="10dp"
+            android:gravity="center"
+            android:textSize="12dp"
+            android:text="@string/line"/>
+
+        <!--Line picture-->
+        <ImageButton
+            android:id="@+id/line_shape"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="left"
+            android:layout_marginLeft="10dp"
+            android:layout_marginBottom="20dp"
+            android:contentDescription="@string/line_shape"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:src="@drawable/line_shape"/>
+    </LinearLayout>
+
+
+
+    <!--RECTANGLE-->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!--Text: "Rectangle"-->
+        <TextView
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="10dp"
+            android:gravity="center"
+            android:textSize="12dp"
+            android:text="@string/rectangle"/>
+
+        <!--Rectangle picture-->
+        <ImageButton
+            android:id="@+id/rectangle_shape"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="left"
+            android:layout_marginLeft="10dp"
+            android:layout_marginBottom="20dp"
+            android:contentDescription="@string/rectangle_shape"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:src="@drawable/rectangle_shape"/>
+    </LinearLayout>
+
+
+
+    <!--OVAL-->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!--Text: "Oval"-->
+        <TextView
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="10dp"
+            android:gravity="center"
+            android:textSize="12dp"
+            android:text="@string/oval"/>
+
+        <!--Oval picture-->
+        <ImageButton
+            android:id="@+id/oval_shape"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="left"
+            android:layout_marginLeft="10dp"
+            android:layout_marginBottom="20dp"
+            android:contentDescription="@string/oval_shape"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:src="@drawable/oval_shape"/>
+    </LinearLayout>
+
+
+
+    <!--CIRCLE-->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!--Text: "Circle"-->
+        <TextView
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="10dp"
+            android:gravity="center"
+            android:textSize="12dp"
+            android:text="@string/circle"/>
+
+        <!--Circle picture-->
+        <ImageButton
+            android:id="@+id/circle_shape"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="left"
+            android:layout_marginLeft="10dp"
+            android:layout_marginBottom="20dp"
+            android:contentDescription="@string/circle_shape"
+            android:scaleType="fitCenter"
+            android:adjustViewBounds="true"
+            android:src="@drawable/circle_shape"/>
+    </LinearLayout>
+
+</LinearLayout>
