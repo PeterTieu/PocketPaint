@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--Layout for TEXT ADDER dialog - i.e. prompts the user to enter a text to add to the Bitmap-->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <!--Where the user types the Text to be added-->
+    <EditText
+        android:id="@+id/text_adder_edittext"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="top"
+        android:hint="@string/enter_the_text_to_add"
+        android:maxLines="1"
+        android:scrollbars="vertical" />
+
+</LinearLayout>
